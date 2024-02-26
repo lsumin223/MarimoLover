@@ -4,6 +4,8 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager instance;
 
+    [SerializeField] protected UIManager UIManager;
+
     private void Awake()
     {
         if(instance == null)
