@@ -359,6 +359,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   UIManager: {fileID: 0}
+  AudioManager: {fileID: 0}
+  isLive: 0
+  currentDate: 0
+  maxDate: 0
 --- !u!1 &898479086
 GameObject:
   m_ObjectHideFlags: 0
@@ -485,7 +489,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_FontData:
-    m_Font: {fileID: 12800000, guid: ba14eef4295779d499c01c172e511e41, type: 3}
+    m_Font: {fileID: 12800000, guid: 58a9099c983dd3a40bcc0845086d8c10, type: 3}
     m_FontSize: 30
     m_FontStyle: 0
     m_BestFit: 0
