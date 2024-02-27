@@ -7,9 +7,10 @@ public class GameManager : MonoBehaviour
     [SerializeField] protected UIManager UIManager;
     [SerializeField] protected AudioManager AudioManager;
 
+    [SerializeField] protected Date Date;
+    [SerializeField] protected Schedule Schedule;
+
     public bool isLive;
-    public bool currentDate;
-    public bool maxDate;
 
     private void Awake()
     {
@@ -30,6 +31,15 @@ public class GameManager : MonoBehaviour
 
     void Update()
     {
-        
+        if(!isLive)
+        {
+            Gameover();
+            return;
+        }
+    }
+
+    void Gameover()
+    {
+
     }
 }
