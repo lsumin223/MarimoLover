@@ -38,6 +38,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    //게임 오버를 처리할 함수이다.
     void Gameover()
     {
 
