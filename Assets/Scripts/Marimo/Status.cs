@@ -1,16 +1,22 @@
 using UnityEngine;
 
-public class Status : MonoBehaviour
+public class Status
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    public string name { get; set; }
+    public int a { get; set; }
+    public int b { get; set; }
+    public int c { get; set; }
+    public int d { get; set; }
+
+    const int MAXVALUE = 5; //½ºÅÝ ÃÖ´ë°ªÀ» 5·Î µÐ´Ù.
+
+    public Status(string name, int a, int b, int c, int d)
     {
-        
+        this.a = a;
+        this.b = b;
+        this.c = c;
+        this.d = d;
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
+
 }
