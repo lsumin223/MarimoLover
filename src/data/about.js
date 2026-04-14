@@ -30,4 +30,28 @@ export const initialAbout = {
     },
   ],
   guestbook: [],
+  otakuProfile: {
+    bannerImageId: null,
+    profileImageId: null,
+    englishNickname: '',
+    handle: '',
+    shortBio: '',
+    // 프로필
+    age: '',           // '미성년자' | '성인' | '비공개'
+    majors: [],        // ['글','그림','디자인','소비','기타']
+    fubFree: '',       // 'O' | 'X'
+    fubFreeDesc: '',
+    accountTendencies: [], // chips
+    accountTendenciesDesc: '',
+    landmines: '',
+    // 장르
+    genreItems: [],    // [{id, title, subtitle, imageId}] up to 3
+    genreTendencies: [], // ['1차','2차','드림']
+    dislikedContent: '',
+    // TRPG 성향
+    gmStyle: [],       // checked option keys (strings)
+    plStyle: [],       // checked option keys (strings)
+    trpgTriggers: '',
+    showTrpg: false,
+  },
 }

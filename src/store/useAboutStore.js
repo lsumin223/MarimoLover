@@ -20,12 +20,21 @@ const useAboutStore = create(
       // 초기 방명록 목록 (빈 배열)
       guestbook: initialAbout.guestbook,
 
+      // 오타쿠 프로필
+      otakuProfile: initialAbout.otakuProfile,
+
       // --- 프로필 액션 ---
 
       // 프로필 얕은 병합 업데이트
       updateProfile: (updates) =>
         set((state) => ({
           profile: { ...state.profile, ...updates },
+        })),
+
+      // 오타쿠 프로필 얕은 병합 업데이트
+      updateOtakuProfile: (updates) =>
+        set((state) => ({
+          otakuProfile: { ...state.otakuProfile, ...updates },
         })),
 
       // --- 공지사항 액션 ---
