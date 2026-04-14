@@ -2,8 +2,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Plus, Edit2, Trash2, X, ChevronRight, Image as ImageIcon, FileText } from 'lucide-react'
-import useSettingsStore from '../store/useSettingsStore'
-import useWorkStore from '../store/useWorkStore'
 import useCharacterStore from '../store/useCharacterStore'
 import useGalleryStore from '../store/useGalleryStore'
 import useWritingStore from '../store/useWritingStore'
@@ -12,7 +10,6 @@ import ConfirmDialog from '../components/common/ConfirmDialog'
 import { getImage, saveImage, resizeImage } from '../lib/imageDB'
 
 const genId = () => 'id-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7)
-const getWorkTitle = (workId, works) => works.find(w => w.id === workId)?.title || '미분류'
 
 // 캐릭터 썸네일 이미지 컴포넌트 (IndexedDB에서 비동기 로드)
 function CharThumb({ imageId, name, size = 40 }) {
@@ -58,8 +55,6 @@ const emptyGroup = { type: 'group', workId: '', groupName: '', members: [], thum
 
 export default function Characters() {
   const navigate = useNavigate()
-  const { selectedWorkId } = useSettingsStore()
-  const { works } = useWorkStore()
   const { characters, addCharacter, updateCharacter, deleteCharacter } = useCharacterStore()
   const { posts } = useGalleryStore()
   const { writings } = useWritingStore()
@@ -78,9 +73,7 @@ export default function Characters() {
   // 삭제 확인
   const [deleteTarget, setDeleteTarget] = useState(null)
 
-  // 필터링
   const filtered = characters.filter(c => {
-    if (selectedWorkId && c.workId !== selectedWorkId) return false
     if (typeFilter === 'individual') return c.type === 'individual'
     if (typeFilter === 'pair') return c.type === 'pair' || c.type === 'group'
     return true
@@ -140,8 +133,8 @@ export default function Characters() {
     setActiveTab(char.type === 'individual' ? 'profile' : char.type === 'pair' ? 'relation' : 'members')
   }
 
-  // 같은 작품 내 개인 캐릭터 목록
-  const sameWorkChars = (workId) => characters.filter(c => c.workId === workId && c.type === 'individual')
+  // 개인 캐릭터 목록 (관계/페어 선택용)
+  const sameWorkChars = () => characters.filter(c => c.type === 'individual')
 
   // 해당 캐릭터의 로그 — tags 배열에서 캐릭터명으로 매칭
   const getCharLogs = (char) => {
@@ -198,7 +191,6 @@ export default function Characters() {
             <CharCard
               key={char.id}
               char={char}
-              works={works}
               characters={characters}
               onEdit={() => openEdit(char)}
               onDelete={() => setDeleteTarget(char)}
@@ -225,14 +217,6 @@ export default function Characters() {
         )}
 
         <div className="space-y-4">
-          {/* 작품 선택 (공통) */}
-          <div>
-            <label className="block text-xs font-medium mb-1" style={{ color: 'var(--txm)' }}>작품</label>
-            <select className="input" value={form.workId || ''} onChange={e => setForm(f => ({ ...f, workId: e.target.value }))}>
-              <option value="">미분류</option>
-              {works.map(w => <option key={w.id} value={w.id}>{w.title}</option>)}
-            </select>
-          </div>
 
           {/* 개인 캐릭터 폼 */}
           {formType === 'individual' && (
@@ -298,7 +282,7 @@ export default function Characters() {
                   <div key={i} className="flex gap-2 mb-2">
                     <select className="input" style={{ width: '40%' }} value={r.characterId} onChange={e => setForm(f => { const relations = [...f.relations]; relations[i] = { ...relations[i], characterId: e.target.value }; return { ...f, relations } })}>
                       <option value="">캐릭터 선택</option>
-                      {sameWorkChars(form.workId).filter(c => c.id !== editTarget?.id).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                      {sameWorkChars().filter(c => c.id !== editTarget?.id).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                     </select>
                     <input className="input flex-1" placeholder="관계 설명" value={r.description} onChange={e => setForm(f => { const relations = [...f.relations]; relations[i] = { ...relations[i], description: e.target.value }; return { ...f, relations } })} />
                     <button onClick={() => setForm(f => ({ ...f, relations: f.relations.filter((_, j) => j !== i) }))} style={{ color: 'var(--txs)' }}><X size={14} /></button>
@@ -333,7 +317,7 @@ export default function Characters() {
                   <label className="block text-xs font-medium mb-1" style={{ color: 'var(--txm)' }}>{l}</label>
                   <select className="input" value={form[k] || ''} onChange={e => setForm(f => ({ ...f, [k]: e.target.value }))}>
                     <option value="">캐릭터 선택</option>
-                    {sameWorkChars(form.workId).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    {sameWorkChars().map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
                 </div>
               ))}
@@ -368,7 +352,7 @@ export default function Characters() {
               <div>
                 <label className="block text-xs font-medium mb-2" style={{ color: 'var(--txm)' }}>멤버</label>
                 <div className="space-y-1 max-h-40 overflow-y-auto">
-                  {sameWorkChars(form.workId).map(c => (
+                  {sameWorkChars().map(c => (
                     <label key={c.id} className="flex items-center gap-2 cursor-pointer px-2 py-1 rounded hover:bg-elevated">
                       <input type="checkbox" checked={(form.members || []).includes(c.id)} onChange={e => setForm(f => ({ ...f, members: e.target.checked ? [...(f.members || []), c.id] : (f.members || []).filter(id => id !== c.id) }))} />
                       <span className="text-sm" style={{ color: 'var(--tx)' }}>{c.name}</span>
@@ -394,7 +378,6 @@ export default function Characters() {
       {detailChar && (
         <CharDetailModal
           char={detailChar}
-          works={works}
           characters={characters}
           posts={posts}
           writings={writings}
@@ -421,7 +404,7 @@ export default function Characters() {
 }
 
 // 캐릭터 카드 컴포넌트
-function CharCard({ char, works, characters, onEdit, onDelete, onClick }) {
+function CharCard({ char, characters, onEdit, onDelete, onClick }) {
   const [hovered, setHovered] = useState(false)
   const getName = (id) => characters.find(c => c.id === id)?.name || '?'
   const getThumb = (id) => characters.find(c => c.id === id)?.thumbnailImageId || null
@@ -449,7 +432,6 @@ function CharCard({ char, works, characters, onEdit, onDelete, onClick }) {
           <CharThumb imageId={char.thumbnailImageId} name={char.name} size={56} />
           <div>
             <div className="font-bold text-sm" style={{ color: 'var(--tx)' }}>{char.name}</div>
-            <div className="text-xs mt-0.5" style={{ color: 'var(--txm)' }}>{getWorkTitle(char.workId, works)}</div>
             {char.bio && <div className="text-xs mt-1 line-clamp-2" style={{ color: 'var(--txs)' }}>{char.bio}</div>}
           </div>
           <span className="tag text-xs" style={{ color: typeColor, background: `color-mix(in srgb, ${typeColor} 12%, transparent)`, border: `1px solid color-mix(in srgb, ${typeColor} 25%, transparent)` }}>{typeBadge}</span>
@@ -464,7 +446,6 @@ function CharCard({ char, works, characters, onEdit, onDelete, onClick }) {
           </div>
           <div>
             <div className="font-bold text-sm" style={{ color: 'var(--tx)' }}>{getName(char.characterA)} × {getName(char.characterB)}</div>
-            <div className="text-xs mt-0.5" style={{ color: 'var(--txm)' }}>{getWorkTitle(char.workId, works)}</div>
             {char.description && <div className="text-xs mt-1 line-clamp-2" style={{ color: 'var(--txs)' }}>{char.description}</div>}
           </div>
           <span className="tag" style={{ color: typeColor, background: `color-mix(in srgb, ${typeColor} 12%, transparent)`, border: `1px solid color-mix(in srgb, ${typeColor} 25%, transparent)` }}>{typeBadge}</span>
@@ -479,7 +460,7 @@ function CharCard({ char, works, characters, onEdit, onDelete, onClick }) {
           </div>
           <div>
             <div className="font-bold text-sm" style={{ color: 'var(--tx)' }}>{char.groupName}</div>
-            <div className="text-xs mt-0.5" style={{ color: 'var(--txm)' }}>{getWorkTitle(char.workId, works)} · {char.members?.length || 0}명</div>
+            <div className="text-xs mt-0.5" style={{ color: 'var(--txm)' }}>{char.members?.length || 0}명</div>
           </div>
           <span className="tag" style={{ color: typeColor, background: `color-mix(in srgb, ${typeColor} 12%, transparent)`, border: `1px solid color-mix(in srgb, ${typeColor} 25%, transparent)` }}>{typeBadge}</span>
         </div>
@@ -523,7 +504,7 @@ function CharDetailImages({ fullBodyId, headId }) {
 }
 
 // 캐릭터 상세 모달
-function CharDetailModal({ char, works, characters, posts, writings, getCharLogs, getPairLogs, activeTab, setActiveTab, onClose, onEdit, onNavigateChar, navigate }) {
+function CharDetailModal({ char, characters, posts, writings, getCharLogs, getPairLogs, activeTab, setActiveTab, onClose, onEdit, onNavigateChar, navigate }) {
   const getName = (id) => characters.find(c => c.id === id)?.name || '?'
   const getThumb = (id) => characters.find(c => c.id === id)?.thumbnailImageId || null
 

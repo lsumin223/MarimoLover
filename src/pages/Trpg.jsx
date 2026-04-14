@@ -75,22 +75,43 @@ export default function Trpg() {
     setSessionFormOpen(false)
   }
 
-  return (
-    <div className="max-w-6xl mx-auto px-4 py-6 animate-fade-in">
-      <h1 className="text-xl font-bold mb-6" style={{ color: 'var(--tx)' }}>TRPG 세션 로그</h1>
+  const openCampaignCreate = () => {
+    setCampaignEdit(null)
+    setCampaignForm({ title: '', system: '', description: '', coverImageId: null })
+    setCoverPreview(null)
+    setCampaignFormOpen(true)
+  }
 
-      <div className="flex gap-5" style={{ minHeight: '60vh' }}>
-        {/* 캠페인 사이드바 */}
-        <div className="w-64 shrink-0">
+  return (
+    <div className="animate-fade-in" style={{ minHeight: 'calc(100vh - 56px)' }}>
+      {/* 모바일: 캠페인 드롭다운 */}
+      <div className="lg:hidden flex items-center gap-2 px-4 py-2 border-b border-border" style={{ background: 'var(--surface)' }}>
+        <select
+          className="input flex-1 text-sm"
+          value={selectedCampaignId || ''}
+          onChange={e => setSelectedCampaignId(e.target.value || null)}
+        >
+          <option value="">캠페인 선택</option>
+          {campaigns.map(c => (
+            <option key={c.id} value={c.id}>{c.title}{c.system ? ` (${c.system})` : ''}</option>
+          ))}
+        </select>
+        <button className="btn-accent flex items-center gap-1 text-xs shrink-0" onClick={openCampaignCreate}>
+          <Plus size={12} /> 새 캠페인
+        </button>
+      </div>
+
+      <div className="flex" style={{ minHeight: 'calc(100vh - 100px)' }}>
+        {/* 데스크톱 캠페인 사이드바 */}
+        <div className="hidden lg:block w-64 shrink-0 border-r border-border overflow-y-auto p-4" style={{ background: 'var(--surface)' }}>
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-semibold tracking-wide uppercase" style={{ color: 'var(--txm)' }}>캠페인</span>
             <button
               className="w-6 h-6 rounded flex items-center justify-center transition-colors"
               style={{ color: 'var(--accent)', background: 'color-mix(in srgb, var(--accent) 12%, transparent)' }}
-              onClick={() => { setCampaignEdit(null); setCampaignForm({ title: '', system: '', description: '', coverImageId: null }); setCoverPreview(null); setCampaignFormOpen(true) }}
+              onClick={openCampaignCreate}
             ><Plus size={14} /></button>
           </div>
-
           <div className="space-y-1">
             {campaigns.length === 0 && <div className="text-xs py-4 text-center" style={{ color: 'var(--txs)' }}>캠페인이 없습니다</div>}
             {campaigns.map(c => (
@@ -110,7 +131,6 @@ export default function Trpg() {
                   <div className="text-sm font-medium truncate" style={{ color: selectedCampaignId === c.id ? 'var(--accent)' : 'var(--tx)' }}>{c.title}</div>
                   {c.system && <div className="text-xs truncate" style={{ color: 'var(--txs)' }}>{c.system}</div>}
                 </div>
-                {/* 편집/삭제 */}
                 <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
                   <button className="w-5 h-5 rounded flex items-center justify-center" style={{ color: 'var(--txm)' }} onClick={() => { setCampaignEdit(c); setCampaignForm({ title: c.title, system: c.system || '', description: c.description || '', coverImageId: c.coverImageId || null }); setCoverPreview(null); setCampaignFormOpen(true) }}><Edit2 size={11} /></button>
                   <button className="w-5 h-5 rounded flex items-center justify-center" style={{ color: '#f87171' }} onClick={() => setDeleteCampaignTarget(c)}><Trash2 size={11} /></button>
@@ -120,11 +140,8 @@ export default function Trpg() {
           </div>
         </div>
 
-        {/* 구분선 */}
-        <div style={{ width: 1, background: 'var(--border)', flexShrink: 0 }} />
-
         {/* 세션 목록 */}
-        <div className="flex-1">
+        <div className="flex-1 max-w-4xl mx-auto px-4 lg:px-6 py-4 lg:py-6 overflow-y-auto">
           {!currentCampaign ? (
             <div className="flex items-center justify-center h-full" style={{ color: 'var(--txs)' }}>
               캠페인을 선택하거나 새로 만들어주세요
