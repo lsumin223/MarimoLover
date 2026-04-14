@@ -1,13 +1,8 @@
 // 어바웃 페이지
 import { useState, useEffect } from 'react'
-import { Plus, Edit2, Trash2, Pin, X, ExternalLink, ChevronDown, ChevronUp, Check } from 'lucide-react'
 import useAboutStore from '../store/useAboutStore'
 import useSettingsStore from '../store/useSettingsStore'
-import useCharacterStore from '../store/useCharacterStore'
-import useWorkStore from '../store/useWorkStore'
-import Modal from '../components/common/Modal'
-import ConfirmDialog from '../components/common/ConfirmDialog'
-import { getImage, saveImage, resizeImage } from '../lib/imageDB'
+import { getImage } from '../lib/imageDB'
 import AboutHeader from './about/AboutHeader'
 import AboutOtaku from './about/AboutOtaku'
 import AboutTrpg from './about/AboutTrpg'
@@ -20,8 +15,8 @@ async function sha256(text) {
 }
 
 export default function About() {
-  const { guestbookPasswordHash, nickname } = useSettingsStore()
-  const { otakuProfile, profile, notices, guestbook, updateOtakuProfile, updateProfile, addNotice, updateNotice, deleteNotice, toggleNoticePin, addGuestbookEntry, deleteGuestbookEntry } = useAboutStore()
+  const { nickname } = useSettingsStore()
+  const { otakuProfile, profile, updateOtakuProfile } = useAboutStore()
 
   return (
     <div className="animate-fade-in">
@@ -30,9 +25,6 @@ export default function About() {
       <div className="max-w-4xl mx-auto px-4 py-8 space-y-12">
         <AboutOtaku otaku={otakuProfile} updateOtaku={updateOtakuProfile} profile={profile} />
         <AboutTrpg otaku={otakuProfile} updateOtaku={updateOtakuProfile} />
-        <CharacterGridSection />
-        <NoticeSection notices={notices} addNotice={addNotice} updateNotice={updateNotice} deleteNotice={deleteNotice} toggleNoticePin={toggleNoticePin} />
-        <GuestbookSection guestbook={guestbook} addEntry={addGuestbookEntry} deleteEntry={deleteGuestbookEntry} passwordHash={guestbookPasswordHash} />
       </div>
     </div>
   )
