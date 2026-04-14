@@ -374,6 +374,320 @@ body {
   </div>
 
 </div><!-- /dashboard -->
+</div><!-- /page-home -->
+
+<!-- ===== 캐릭터 페이지 ===== -->
+<div id="page-characters" class="page" style="display:none;">
+  <div style="max-width:1100px;margin:0 auto;padding:24px 16px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+      <h1 style="font-size:18px;font-weight:700;color:var(--tx);">캐릭터</h1>
+      <button style="padding:6px 14px;border-radius:7px;background:var(--accent);color:var(--bg);font-size:12px;font-weight:600;border:none;cursor:pointer;">+ 새 캐릭터</button>
+    </div>
+    <!-- 필터 -->
+    <div style="display:flex;gap:6px;margin-bottom:20px;">
+      <button style="padding:4px 14px;border-radius:999px;font-size:11px;font-weight:500;background:var(--accent);color:var(--bg);border:1px solid var(--accent);cursor:pointer;">전체</button>
+      <button style="padding:4px 14px;border-radius:999px;font-size:11px;font-weight:500;background:transparent;color:var(--txm);border:1px solid var(--border);cursor:pointer;">개인</button>
+      <button style="padding:4px 14px;border-radius:999px;font-size:11px;font-weight:500;background:transparent;color:var(--txm);border:1px solid var(--border);cursor:pointer;">페어 &amp; 다인관계</button>
+    </div>
+    <!-- 카드 그리드 -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;">
+      <!-- 개인 캐릭터 카드 -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px 16px;display:flex;flex-direction:column;align-items:center;gap:10px;cursor:pointer;transition:.15s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+        <div style="width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#3d1f6e,#2a1050);color:var(--accent);font-size:22px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid var(--border);">리</div>
+        <div style="text-align:center;">
+          <div style="font-size:14px;font-weight:700;color:var(--tx);">리온 아스트레아</div>
+          <div style="font-size:11px;color:var(--txs);margin-top:2px;">별과 기사단</div>
+          <div style="font-size:11px;color:var(--txm);margin-top:6px;line-height:1.4;">별빛 기사단의 단장. 냉정해 보이지만 부하들에게는 한없이 다정하다.</div>
+        </div>
+        <span style="padding:2px 10px;border-radius:4px;font-size:10px;font-weight:600;background:color-mix(in srgb,var(--accent) 12%,transparent);color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 25%,transparent);">개인</span>
+      </div>
+      <!-- 개인 캐릭터 카드 2 -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px 16px;display:flex;flex-direction:column;align-items:center;gap:10px;cursor:pointer;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+        <div style="width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#3d1f45,#2a1035);color:var(--accent2);font-size:22px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid var(--border);">세</div>
+        <div style="text-align:center;">
+          <div style="font-size:14px;font-weight:700;color:var(--tx);">세라핀 루나</div>
+          <div style="font-size:11px;color:var(--txs);margin-top:2px;">별과 기사단</div>
+          <div style="font-size:11px;color:var(--txm);margin-top:6px;line-height:1.4;">기사단의 부단장 겸 마법사. 논리적이고 박식하다.</div>
+        </div>
+        <span style="padding:2px 10px;border-radius:4px;font-size:10px;font-weight:600;background:color-mix(in srgb,var(--accent) 12%,transparent);color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 25%,transparent);">개인</span>
+      </div>
+      <!-- 페어 카드 -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px 16px;display:flex;flex-direction:column;align-items:center;gap:10px;cursor:pointer;" onmouseover="this.style.borderColor='var(--accent2)'" onmouseout="this.style.borderColor='var(--border)'">
+        <div style="display:flex;margin-left:12px;">
+          <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#3d1f6e,#2a1050);color:var(--accent);font-size:17px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid var(--border);">리</div>
+          <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#3d1f45,#2a1035);color:var(--accent2);font-size:17px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid var(--border);margin-left:-12px;">세</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:13px;font-weight:700;color:var(--tx);">리온 × 세라핀</div>
+          <div style="font-size:11px;color:var(--txs);margin-top:2px;">별과 기사단</div>
+          <div style="font-size:11px;color:var(--txm);margin-top:6px;line-height:1.4;">함께라면 못 이룰 것이 없다고 믿는 두 사람.</div>
+        </div>
+        <span style="padding:2px 10px;border-radius:4px;font-size:10px;font-weight:600;background:color-mix(in srgb,var(--accent2) 12%,transparent);color:var(--accent2);border:1px solid color-mix(in srgb,var(--accent2) 25%,transparent);">페어</span>
+      </div>
+      <!-- 개인 캐릭터 카드 3 -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px 16px;display:flex;flex-direction:column;align-items:center;gap:10px;cursor:pointer;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+        <div style="width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#1f3545,#0d2035);color:#60a5fa;font-size:22px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid var(--border);">하</div>
+        <div style="text-align:center;">
+          <div style="font-size:14px;font-weight:700;color:var(--tx);">하야시 켄</div>
+          <div style="font-size:11px;color:var(--txs);margin-top:2px;">도시의 이면</div>
+          <div style="font-size:11px;color:var(--txm);margin-top:6px;line-height:1.4;">겉으로는 평범한 대학생. 실은 요괴 중재자.</div>
+        </div>
+        <span style="padding:2px 10px;border-radius:4px;font-size:10px;font-weight:600;background:color-mix(in srgb,var(--accent) 12%,transparent);color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 25%,transparent);">개인</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 갤러리 페이지 ===== -->
+<div id="page-gallery" class="page" style="display:none;">
+  <div style="max-width:1100px;margin:0 auto;padding:24px 16px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <h1 style="font-size:18px;font-weight:700;color:var(--tx);">그림 갤러리</h1>
+      <button style="padding:6px 14px;border-radius:7px;background:var(--accent);color:var(--bg);font-size:12px;font-weight:600;border:none;cursor:pointer;">+ 새 게시글</button>
+    </div>
+    <!-- 태그 필터 -->
+    <div style="display:flex;gap:6px;margin-bottom:20px;overflow-x:auto;">
+      <button style="padding:3px 12px;border-radius:999px;font-size:11px;background:var(--accent);color:var(--bg);border:1px solid var(--accent);white-space:nowrap;cursor:pointer;">전체</button>
+      <button style="padding:3px 12px;border-radius:999px;font-size:11px;background:transparent;color:var(--txm);border:1px solid var(--border);white-space:nowrap;cursor:pointer;">리온 아스트레아</button>
+      <button style="padding:3px 12px;border-radius:999px;font-size:11px;background:transparent;color:var(--txm);border:1px solid var(--border);white-space:nowrap;cursor:pointer;">세라핀 루나</button>
+      <button style="padding:3px 12px;border-radius:999px;font-size:11px;background:transparent;color:var(--txm);border:1px solid var(--border);white-space:nowrap;cursor:pointer;">하야시 켄</button>
+    </div>
+    <!-- 썸네일 그리드 -->
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;">
+      <div style="aspect-ratio:1;border-radius:10px;background:linear-gradient(135deg,#2a1545,#1a0d35);position:relative;cursor:pointer;overflow:hidden;group:" onmouseover="this.querySelector('.overlay').style.opacity=1" onmouseout="this.querySelector('.overlay').style.opacity=0">
+        <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:32px;">🌙</div>
+        <div class="overlay" style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.75) 0%,transparent 50%);opacity:0;transition:.2s;display:flex;flex-direction:column;justify-content:flex-end;padding:8px;">
+          <div style="font-size:11px;font-weight:600;color:white;">별빛 아래의 두 사람</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.6);">2024-03-10</div>
+        </div>
+      </div>
+      <div style="aspect-ratio:1;border-radius:10px;background:linear-gradient(135deg,#1a2535,#0d1a28);cursor:pointer;overflow:hidden;position:relative;" onmouseover="this.querySelector('.overlay').style.opacity=1" onmouseout="this.querySelector('.overlay').style.opacity=0">
+        <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:32px;">⚔</div>
+        <div class="overlay" style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.75) 0%,transparent 50%);opacity:0;transition:.2s;display:flex;flex-direction:column;justify-content:flex-end;padding:8px;">
+          <div style="font-size:11px;font-weight:600;color:white;">리온 전신 컨셉</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.6);">2024-02-14</div>
+        </div>
+      </div>
+      <div style="aspect-ratio:1;border-radius:10px;background:linear-gradient(135deg,#251525,#180d22);cursor:pointer;overflow:hidden;position:relative;" onmouseover="this.querySelector('.overlay').style.opacity=1" onmouseout="this.querySelector('.overlay').style.opacity=0">
+        <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:32px;">✨</div>
+        <div class="overlay" style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.75) 0%,transparent 50%);opacity:0;transition:.2s;display:flex;flex-direction:column;justify-content:flex-end;padding:8px;">
+          <div style="font-size:11px;font-weight:600;color:white;">도시의 이면 — 밤거리</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.6);">2024-01-20</div>
+        </div>
+      </div>
+      <div style="aspect-ratio:1;border-radius:10px;background:var(--elevated);border:1px dashed var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;">
+        <span style="font-size:24px;color:var(--txs);">+</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 글 페이지 ===== -->
+<div id="page-writings" class="page" style="display:none;">
+  <div style="max-width:760px;margin:0 auto;padding:24px 16px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <h1 style="font-size:18px;font-weight:700;color:var(--tx);">글 갤러리</h1>
+      <button style="padding:6px 14px;border-radius:7px;background:var(--accent);color:var(--bg);font-size:12px;font-weight:600;border:none;cursor:pointer;">+ 새 글 작성</button>
+    </div>
+    <div style="display:flex;gap:6px;margin-bottom:20px;">
+      <button style="padding:3px 12px;border-radius:999px;font-size:11px;background:var(--accent);color:var(--bg);border:1px solid var(--accent);cursor:pointer;">전체</button>
+      <button style="padding:3px 12px;border-radius:999px;font-size:11px;background:transparent;color:var(--txm);border:1px solid var(--border);cursor:pointer;">리온 아스트레아</button>
+      <button style="padding:3px 12px;border-radius:999px;font-size:11px;background:transparent;color:var(--txm);border:1px solid var(--border);cursor:pointer;">세라핀 루나</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;cursor:pointer;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+        <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:8px;">
+          <span style="font-size:15px;margin-top:1px;">📝</span>
+          <div style="flex:1;">
+            <div style="font-size:14px;font-weight:700;color:var(--tx);margin-bottom:5px;">별이 지는 날</div>
+            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+              <span style="padding:2px 8px;border-radius:4px;font-size:10px;background:color-mix(in srgb,var(--accent) 12%,transparent);color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 25%,transparent);">별과 기사단</span>
+              <span style="padding:2px 8px;border-radius:4px;font-size:10px;background:color-mix(in srgb,var(--accent2) 12%,transparent);color:var(--accent2);border:1px solid color-mix(in srgb,var(--accent2) 25%,transparent);">리온</span>
+              <span style="padding:2px 8px;border-radius:4px;font-size:10px;background:color-mix(in srgb,var(--accent2) 12%,transparent);color:var(--accent2);border:1px solid color-mix(in srgb,var(--accent2) 25%,transparent);">세라핀</span>
+              <span style="font-size:10px;color:var(--txs);margin-left:auto;">2024-03-05</span>
+            </div>
+          </div>
+        </div>
+        <p style="font-size:12px;color:var(--txm);padding-left:25px;line-height:1.6;">별이 지는 날이면 리온은 언제나 옥상에 올라갔다. 차가운 밤바람이 코트 깃을 파고들었지만...</p>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;cursor:pointer;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+        <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:8px;">
+          <span style="font-size:15px;margin-top:1px;">📝</span>
+          <div style="flex:1;">
+            <div style="font-size:14px;font-weight:700;color:var(--tx);margin-bottom:5px;">중재자의 하루</div>
+            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+              <span style="padding:2px 8px;border-radius:4px;font-size:10px;background:color-mix(in srgb,var(--accent) 12%,transparent);color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 25%,transparent);">도시의 이면</span>
+              <span style="padding:2px 8px;border-radius:4px;font-size:10px;background:color-mix(in srgb,var(--accent2) 12%,transparent);color:var(--accent2);border:1px solid color-mix(in srgb,var(--accent2) 25%,transparent);">하야시 켄</span>
+              <span style="font-size:10px;color:var(--txs);margin-left:auto;">2024-02-20</span>
+            </div>
+          </div>
+        </div>
+        <p style="font-size:12px;color:var(--txm);padding-left:25px;line-height:1.6;">오늘도 하루가 시작됐다. 켄은 알람 소리보다 먼저 눈을 떴다. 창문 너머 골목에서 고양이 요괴 두 마리가...</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TRPG 페이지 ===== -->
+<div id="page-trpg" class="page" style="display:none;">
+  <div style="max-width:1000px;margin:0 auto;padding:24px 16px;">
+    <h1 style="font-size:18px;font-weight:700;color:var(--tx);margin-bottom:20px;">TRPG 세션 로그</h1>
+    <div style="display:flex;gap:16px;min-height:400px;">
+      <!-- 캠페인 사이드바 -->
+      <div style="width:220px;flex-shrink:0;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <span style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--txm);">캠페인</span>
+          <button style="width:22px;height:22px;border-radius:5px;background:color-mix(in srgb,var(--accent) 12%,transparent);color:var(--accent);border:none;cursor:pointer;font-size:14px;">+</button>
+        </div>
+        <div style="padding:10px 12px;border-radius:9px;background:color-mix(in srgb,var(--accent) 10%,transparent);border:1px solid color-mix(in srgb,var(--accent) 25%,transparent);cursor:pointer;">
+          <div style="font-size:12px;font-weight:600;color:var(--accent);">심연의 계약</div>
+          <div style="font-size:10px;color:var(--txs);margin-top:2px;">코즈믹 호러 TRPG</div>
+        </div>
+      </div>
+      <div style="width:1px;background:var(--border);flex-shrink:0;"></div>
+      <!-- 세션 목록 -->
+      <div style="flex:1;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+          <div>
+            <div style="font-size:15px;font-weight:700;color:var(--tx);">심연의 계약</div>
+            <div style="font-size:11px;color:var(--txm);margin-top:2px;">코즈믹 호러 TRPG · 이성을 지키며 진실에 다가가는 탐사 캠페인</div>
+          </div>
+          <button style="padding:6px 12px;border-radius:7px;background:var(--accent);color:var(--bg);font-size:11px;font-weight:600;border:none;cursor:pointer;">+ 새 세션</button>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+          <div style="width:32px;height:32px;border-radius:7px;background:color-mix(in srgb,var(--accent2) 12%,transparent);color:var(--accent2);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;">1</div>
+          <div style="flex:1;">
+            <div style="font-size:13px;font-weight:600;color:var(--tx);">1화 — 오래된 저택</div>
+            <div style="font-size:11px;color:var(--txm);margin-top:2px;">의뢰인의 저택을 조사하던 탐사자들이 지하실에서 수상한 제단을 발견했다.</div>
+          </div>
+          <div style="text-align:right;flex-shrink:0;">
+            <div style="font-size:10px;color:var(--txs);">2024-01-15</div>
+            <div style="font-size:10px;color:var(--txm);margin-top:2px;padding:2px 6px;border-radius:4px;background:var(--elevated);">0줄</div>
+          </div>
+          <span style="color:var(--txs);font-size:14px;">›</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 어바웃 페이지 ===== -->
+<div id="page-about" class="page" style="display:none;">
+  <div style="max-width:720px;margin:0 auto;padding:24px 16px;display:flex;flex-direction:column;gap:40px;">
+    <!-- 공지사항 -->
+    <section>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+        <div style="width:4px;height:18px;border-radius:2px;background:var(--accent);"></div>
+        <span style="font-size:14px;font-weight:700;color:var(--tx);">공지사항</span>
+        <button style="margin-left:auto;padding:4px 12px;border-radius:6px;background:var(--accent);color:var(--bg);font-size:11px;font-weight:600;border:none;cursor:pointer;">+ 새 공지</button>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;">
+        <div style="display:flex;align-items:center;gap:8px;padding:12px 16px;cursor:pointer;border-bottom:1px solid var(--border);">
+          <span style="font-size:12px;color:var(--accent);">📌</span>
+          <span style="flex:1;font-size:13px;font-weight:500;color:var(--tx);">사이트 오픈했습니다</span>
+          <span style="font-size:10px;color:var(--txs);">2024-03-01</span>
+          <span style="font-size:12px;color:var(--txs);">∨</span>
+        </div>
+        <div style="padding:12px 16px;font-size:12px;color:var(--txm);line-height:1.7;">
+          오리지널 창작 정리용 개인 사이트를 만들었습니다. 천천히 내용을 채워나갈 예정이에요.
+        </div>
+      </div>
+    </section>
+    <!-- 오타쿠 설명서 -->
+    <section>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+        <div style="width:4px;height:18px;border-radius:2px;background:var(--accent2);"></div>
+        <span style="font-size:14px;font-weight:700;color:var(--tx);">오타쿠 설명서</span>
+        <button style="margin-left:auto;padding:4px 10px;border-radius:6px;background:transparent;color:var(--txm);font-size:11px;border:1px solid var(--border);cursor:pointer;">✏ 편집</button>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:16px;">
+        <div style="display:flex;align-items:center;gap:14px;">
+          <div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#7c3aed);color:white;font-size:22px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid var(--border);flex-shrink:0;">마</div>
+          <div>
+            <div style="font-size:16px;font-weight:700;color:var(--accent);">마리모</div>
+            <div style="font-size:12px;color:var(--txm);margin-top:3px;">판타지와 현대물을 좋아하는 창작자입니다. 주로 오리지널 캐릭터를 씁니다.</div>
+          </div>
+        </div>
+        <hr style="border:none;border-top:1px solid var(--border);">
+        <div>
+          <div style="font-size:10px;font-weight:600;letter-spacing:.06em;color:var(--txm);margin-bottom:8px;">좋아하는 것</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;">
+            <span style="padding:3px 10px;border-radius:4px;font-size:11px;background:color-mix(in srgb,var(--accent) 12%,transparent);color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 25%,transparent);">이세계 판타지</span>
+            <span style="padding:3px 10px;border-radius:4px;font-size:11px;background:color-mix(in srgb,var(--accent) 12%,transparent);color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 25%,transparent);">버디물</span>
+            <span style="padding:3px 10px;border-radius:4px;font-size:11px;background:color-mix(in srgb,var(--accent) 12%,transparent);color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 25%,transparent);">감정 억압하는 캐릭터</span>
+            <span style="padding:3px 10px;border-radius:4px;font-size:11px;background:color-mix(in srgb,var(--accent) 12%,transparent);color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 25%,transparent);">나중에 무너지는 순간</span>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:10px;font-weight:600;letter-spacing:.06em;color:var(--txm);margin-bottom:8px;">지뢰</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;">
+            <span style="padding:3px 10px;border-radius:4px;font-size:11px;background:color-mix(in srgb,var(--accent2) 12%,transparent);color:var(--accent2);border:1px solid color-mix(in srgb,var(--accent2) 25%,transparent);">NTR</span>
+            <span style="padding:3px 10px;border-radius:4px;font-size:11px;background:color-mix(in srgb,var(--accent2) 12%,transparent);color:var(--accent2);border:1px solid color-mix(in srgb,var(--accent2) 25%,transparent);">과도한 폭력 묘사</span>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:10px;font-weight:600;letter-spacing:.06em;color:var(--txm);margin-bottom:4px;">창작 주의사항</div>
+          <p style="font-size:12px;color:var(--txm);line-height:1.6;">2차 창작은 비상업 범위 내에서 자유롭게 허용합니다. 단, R18은 사전 문의 부탁드립니다.</p>
+        </div>
+        <div style="display:flex;gap:8px;padding-top:4px;border-top:1px solid var(--border);">
+          <a href="#" style="padding:6px 14px;border-radius:8px;background:var(--elevated);color:var(--tx);font-size:11px;text-decoration:none;border:1px solid var(--border);">Twitter/X ↗</a>
+          <a href="#" style="padding:6px 14px;border-radius:8px;background:var(--elevated);color:var(--tx);font-size:11px;text-decoration:none;border:1px solid var(--border);">Pixiv ↗</a>
+        </div>
+      </div>
+    </section>
+    <!-- 방명록 -->
+    <section>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+        <div style="width:4px;height:18px;border-radius:2px;background:var(--accent2);"></div>
+        <span style="font-size:14px;font-weight:700;color:var(--tx);">방명록</span>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;">
+        <input type="text" placeholder="닉네임" style="width:140px;padding:6px 10px;border-radius:6px;background:var(--elevated);border:1px solid var(--border);color:var(--tx);font-size:12px;margin-bottom:8px;outline:none;">
+        <textarea placeholder="메시지를 남겨주세요" rows="3" style="width:100%;padding:8px 10px;border-radius:6px;background:var(--elevated);border:1px solid var(--border);color:var(--tx);font-size:12px;resize:none;display:block;font-family:inherit;outline:none;"></textarea>
+        <div style="display:flex;justify-content:flex-end;margin-top:8px;">
+          <button style="padding:5px 14px;border-radius:6px;background:var(--accent);color:var(--bg);font-size:11px;font-weight:600;border:none;cursor:pointer;">남기기</button>
+        </div>
+      </div>
+      <div style="text-align:center;font-size:12px;color:var(--txs);padding:20px;">아직 방명록이 없습니다</div>
+    </section>
+  </div>
+</div>
+
 </div><!-- /main -->
+
+<script>
+// 페이지 전환
+const pages = {
+  '홈': 'page-home',
+  '캐릭터': 'page-characters',
+  '갤러리': 'page-gallery',
+  '글': 'page-writings',
+  'TRPG': 'page-trpg',
+  '어바웃': 'page-about',
+};
+
+document.querySelectorAll('.nav-link').forEach(link => {
+  link.addEventListener('click', e => {
+    e.preventDefault();
+    const label = link.textContent.trim();
+    const pageId = pages[label];
+    if (!pageId) return;
+
+    // 모든 페이지 숨기기
+    Object.values(pages).forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = 'none';
+    });
+
+    // 선택된 페이지 표시
+    const target = document.getElementById(pageId);
+    if (target) target.style.display = 'block';
+
+    // 활성 링크 업데이트
+    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+    link.classList.add('active');
+  });
+});
+</script>
 </body>
 </html>
