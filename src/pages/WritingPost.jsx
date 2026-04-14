@@ -4,7 +4,6 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { ChevronLeft, ChevronRight, Edit2, Trash2, Palette, X } from 'lucide-react'
 import useWritingStore from '../store/useWritingStore'
 import useWorkStore from '../store/useWorkStore'
-import useCharacterStore from '../store/useCharacterStore'
 import ConfirmDialog from '../components/common/ConfirmDialog'
 
 // 뷰어 설정 기본값
@@ -45,9 +44,8 @@ const STORAGE_KEY = 'writing-viewer-settings'
 export default function WritingPost() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { writings, deleteWriting } = useWritingStore()
+  const { writings, series, deleteWriting } = useWritingStore()
   const { works } = useWorkStore()
-  const { characters } = useCharacterStore()
 
   const [settings, setSettings] = useState(() => {
     try { return { ...DEFAULT_VIEWER, ...JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}') } } catch { return DEFAULT_VIEWER }
@@ -72,14 +70,16 @@ export default function WritingPost() {
     )
   }
 
-  // 이전/다음 글 (날짜 정렬)
-  const sorted = [...writings].sort((a, b) => b.date.localeCompare(a.date))
-  const idx = sorted.findIndex(w => w.id === id)
-  const prev = sorted[idx + 1]
-  const next = sorted[idx - 1]
+  // 같은 시리즈 내 이전/다음 (chapterNum 기준)
+  const siblingsInSeries = [...writings]
+    .filter(w => w.seriesId === writing.seriesId)
+    .sort((a, b) => (a.chapterNum || 0) - (b.chapterNum || 0))
+  const idx = siblingsInSeries.findIndex(w => w.id === id)
+  const prev = siblingsInSeries[idx - 1]
+  const next = siblingsInSeries[idx + 1]
 
+  const currentSeries = series?.find(s => s.id === writing.seriesId)
   const workTitle = works.find(w => w.id === writing.workId)?.title || '미분류'
-  const charNames = (writing.characterTags || []).map(cid => characters.find(c => c.id === cid)?.name).filter(Boolean)
 
   // 배경/글자색 계산
   const getBg = () => {
@@ -232,10 +232,14 @@ export default function WritingPost() {
       <div className="mx-auto px-4 py-12" style={{ maxWidth: settings.maxWidth }}>
         {/* 제목/메타 */}
         <div className="mb-8">
+          {currentSeries && (
+            <div className="text-xs mb-2 cursor-pointer" style={{ color: 'var(--accent)' }} onClick={() => navigate('/writings')}>
+              {currentSeries.title} · {writing.chapterNum ? `${writing.chapterNum}화` : ''}
+            </div>
+          )}
           <h1 className="text-2xl font-bold mb-3" style={{ color: viewerText || 'var(--tx)', fontFamily: settings.fontFamily }}>{writing.title}</h1>
           <div className="flex flex-wrap gap-2 items-center">
             {writing.workId && <span className="tag">{workTitle}</span>}
-            {charNames.map((n, i) => <span key={i} className="tag" style={{ color: 'var(--accent2)', background: 'color-mix(in srgb, var(--accent2) 12%, transparent)', border: '1px solid color-mix(in srgb, var(--accent2) 25%, transparent)' }}>{n}</span>)}
             <span className="text-xs ml-auto" style={{ color: viewerText ? `${viewerText}88` : 'var(--txs)' }}>{writing.date}</span>
           </div>
         </div>
@@ -255,17 +259,17 @@ export default function WritingPost() {
           {renderContent(writing.content || '')}
         </div>
 
-        {/* 이전/다음 내비게이션 */}
+        {/* 이전/다음 내비게이션 (같은 시리즈 내) */}
         <div className="flex justify-between mt-16 pt-6" style={{ borderTop: '1px solid var(--border)' }}>
-          {next ? (
-            <button className="flex items-center gap-2 text-sm" style={{ color: 'var(--txm)' }} onClick={() => navigate(`/writings/${next.id}`)}>
-              <ChevronLeft size={16} />
-              <span className="truncate max-w-40">{next.title}</span>
-            </button>
-          ) : <div />}
           {prev ? (
             <button className="flex items-center gap-2 text-sm" style={{ color: 'var(--txm)' }} onClick={() => navigate(`/writings/${prev.id}`)}>
-              <span className="truncate max-w-40">{prev.title}</span>
+              <ChevronLeft size={16} />
+              <span className="truncate max-w-40">{prev.chapterNum ? `${prev.chapterNum}화 ` : ''}{prev.title}</span>
+            </button>
+          ) : <div />}
+          {next ? (
+            <button className="flex items-center gap-2 text-sm" style={{ color: 'var(--txm)' }} onClick={() => navigate(`/writings/${next.id}`)}>
+              <span className="truncate max-w-40">{next.chapterNum ? `${next.chapterNum}화 ` : ''}{next.title}</span>
               <ChevronRight size={16} />
             </button>
           ) : <div />}

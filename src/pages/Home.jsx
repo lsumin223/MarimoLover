@@ -13,6 +13,7 @@ import TrpgWidget from '../components/widgets/TrpgWidget'
 import CharacterCardWidget from '../components/widgets/CharacterCardWidget'
 import ProfileWidget from '../components/widgets/ProfileWidget'
 import MiniGalleryWidget from '../components/widgets/MiniGalleryWidget'
+import BgmWidget from '../components/widgets/BgmWidget'
 
 // 기본 레이아웃 (lg 브레이크포인트, 12 컬럼)
 const DEFAULT_LAYOUTS = {
@@ -23,7 +24,8 @@ const DEFAULT_LAYOUTS = {
     { i: 'archive',       x: 4, y: 0,  w: 4, h: 7, minW: 3, minH: 4 },
     { i: 'trpg',          x: 4, y: 7,  w: 4, h: 7, minW: 3, minH: 4 },
     { i: 'characterCard', x: 8, y: 0,  w: 4, h: 7, minW: 3, minH: 4 },
-    { i: 'profile',       x: 8, y: 7,  w: 4, h: 7, minW: 3, minH: 4 },
+    { i: 'profile',       x: 8, y: 7,  w: 2, h: 5, minW: 2, minH: 4 },
+    { i: 'bgm',           x: 10, y: 7, w: 2, h: 5, minW: 2, minH: 4 },
   ],
 }
 
@@ -36,6 +38,7 @@ const WIDGET_MAP = {
   trpg:          TrpgWidget,
   characterCard: CharacterCardWidget,
   profile:       ProfileWidget,
+  bgm:           BgmWidget,
 }
 
 export default function Home() {

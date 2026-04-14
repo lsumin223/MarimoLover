@@ -1,9 +1,16 @@
-// TRPG 세션 상세 — 로그 파싱/뷰어/내보내기
+// TRPG 세션 상세 — 로그 파싱/뷰어/내보내기 + PL 캐릭터 + 비밀번호 잠금
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ChevronLeft, Download, Upload, X } from 'lucide-react'
+import { ChevronLeft, Download, Upload, X, Plus, Trash2, Lock, Eye, EyeOff, Users, Check } from 'lucide-react'
 import useTrpgStore from '../store/useTrpgStore'
 import ConfirmDialog from '../components/common/ConfirmDialog'
+
+const genId = () => 'pl-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7)
+
+async function sha256(text) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text))
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('')
+}
 
 // CCFOLIA 백업 HTML 파싱 함수
 function parseCcfoliaHtml(html) {
@@ -39,11 +46,92 @@ export default function TrpgSession() {
   const [charFilter, setCharFilter] = useState(null) // null = 전체
   const [clearLogConfirm, setClearLogConfirm] = useState(false)
 
+  // PL 캐릭터 관리
+  const [plCharInput, setPlCharInput] = useState({ name: '', player: '' })
+  const [showPlForm, setShowPlForm] = useState(false)
+
+  // 비밀번호 잠금
+  const [pwInput, setPwInput] = useState('')
+  const [pwConfirm, setPwConfirm] = useState('')
+  const [showPw, setShowPw] = useState(false)
+  const [pwSuccess, setPwSuccess] = useState(false)
+
+  // 세션 잠금 해제
+  const [unlocked, setUnlocked] = useState(() => !session?.passwordHash)
+  const [unlockInput, setUnlockInput] = useState('')
+  const [unlockError, setUnlockError] = useState(false)
+
+  // 비밀번호 저장
+  const savePw = async () => {
+    if (!pwInput.trim()) return
+    if (pwInput !== pwConfirm) { alert('비밀번호가 일치하지 않습니다.'); return }
+    const hash = await sha256(pwInput)
+    updateSession(session.id, { passwordHash: hash })
+    setPwInput(''); setPwConfirm('')
+    setPwSuccess(true); setTimeout(() => setPwSuccess(false), 2000)
+  }
+  const removePw = () => { updateSession(session.id, { passwordHash: null }); setPwSuccess(false); setUnlocked(true) }
+
+  const handleUnlock = async () => {
+    const hash = await sha256(unlockInput)
+    if (hash === session.passwordHash) { setUnlocked(true); setUnlockInput('') }
+    else { setUnlockError(true); setTimeout(() => setUnlockError(false), 2000) }
+  }
+
+  // PL 캐릭터 추가
+  const addPlChar = () => {
+    if (!plCharInput.name) return
+    const pl = [...(session.plCharacters || []), { id: genId(), ...plCharInput }]
+    updateSession(session.id, { plCharacters: pl })
+    setPlCharInput({ name: '', player: '' })
+    setShowPlForm(false)
+  }
+  const removePlChar = (id) => {
+    updateSession(session.id, { plCharacters: (session.plCharacters || []).filter(p => p.id !== id) })
+  }
+
   if (!session) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-6 text-center" style={{ color: 'var(--txs)' }}>
         <p>세션을 찾을 수 없습니다.</p>
         <button className="btn-ghost mt-4" onClick={() => navigate('/trpg')}>← TRPG 목록으로</button>
+      </div>
+    )
+  }
+
+  // 비밀번호 잠금 게이트
+  if (session.passwordHash && !unlocked) {
+    return (
+      <div className="max-w-sm mx-auto px-4 py-20 animate-fade-in">
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4" style={{ background: 'color-mix(in srgb, var(--accent) 15%, transparent)' }}>
+            <Lock size={28} style={{ color: 'var(--accent)' }} />
+          </div>
+          <h2 className="text-lg font-bold mb-1" style={{ color: 'var(--tx)' }}>비밀번호 보호</h2>
+          <p className="text-sm" style={{ color: 'var(--txs)' }}>{session.title}</p>
+        </div>
+        <div className="space-y-2">
+          <div className="flex gap-2">
+            <input
+              type={showPw ? 'text' : 'password'}
+              className="input flex-1"
+              placeholder="비밀번호 입력"
+              value={unlockInput}
+              onChange={e => setUnlockInput(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleUnlock()}
+              style={unlockError ? { borderColor: '#e74c3c' } : {}}
+              autoFocus
+            />
+            <button className="btn-ghost" onClick={() => setShowPw(v => !v)}>
+              {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
+          </div>
+          {unlockError && <p className="text-xs" style={{ color: '#e74c3c' }}>비밀번호가 틀렸습니다.</p>}
+          <div className="flex gap-2 pt-1">
+            <button className="btn-accent flex-1" onClick={handleUnlock}>확인</button>
+            <button className="btn-ghost" onClick={() => navigate('/trpg')}>돌아가기</button>
+          </div>
+        </div>
       </div>
     )
   }
@@ -125,6 +213,83 @@ export default function TrpgSession() {
         <h1 className="text-2xl font-bold" style={{ color: 'var(--tx)' }}>{session.title}</h1>
         <div className="text-xs mt-1" style={{ color: 'var(--txs)' }}>{session.date}</div>
         {session.summary && <p className="text-sm mt-2" style={{ color: 'var(--txm)' }}>{session.summary}</p>}
+      </div>
+
+      {/* PL 캐릭터 */}
+      <div className="mb-5 p-4 rounded-xl" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Users size={15} style={{ color: 'var(--accent)' }} />
+            <span className="text-sm font-medium" style={{ color: 'var(--tx)' }}>PL 캐릭터</span>
+          </div>
+          <button className="btn-ghost flex items-center gap-1 text-xs" onClick={() => setShowPlForm(v => !v)}>
+            <Plus size={13} /> 추가
+          </button>
+        </div>
+        {showPlForm && (
+          <div className="flex gap-2 mb-3 animate-slide-up">
+            <input className="input flex-1" placeholder="캐릭터명" value={plCharInput.name}
+              onChange={e => setPlCharInput(v => ({ ...v, name: e.target.value }))}
+              onKeyDown={e => e.key === 'Enter' && addPlChar()} autoFocus />
+            <input className="input flex-1" placeholder="플레이어명" value={plCharInput.player}
+              onChange={e => setPlCharInput(v => ({ ...v, player: e.target.value }))}
+              onKeyDown={e => e.key === 'Enter' && addPlChar()} />
+            <button className="btn-accent px-3 text-sm" onClick={addPlChar}>추가</button>
+            <button className="btn-ghost px-2" onClick={() => setShowPlForm(false)}><X size={14} /></button>
+          </div>
+        )}
+        {(session.plCharacters || []).length === 0 && !showPlForm ? (
+          <p className="text-xs" style={{ color: 'var(--txs)' }}>등록된 PL 캐릭터가 없습니다.</p>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            {(session.plCharacters || []).map(p => (
+              <div key={p.id} className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs" style={{ background: 'var(--bg)', border: '1px solid var(--border)' }}>
+                <span className="font-medium" style={{ color: 'var(--tx)' }}>{p.name}</span>
+                {p.player && <span style={{ color: 'var(--txs)' }}>/ {p.player}</span>}
+                <button className="ml-1" style={{ color: 'var(--txs)' }} onClick={() => removePlChar(p.id)}><X size={12} /></button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* 비밀번호 잠금 설정 */}
+      <div className="mb-5 p-4 rounded-xl" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Lock size={15} style={{ color: session.passwordHash ? 'var(--accent)' : 'var(--txm)' }} />
+            <span className="text-sm font-medium" style={{ color: 'var(--tx)' }}>세션 잠금</span>
+            {session.passwordHash && (
+              <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'color-mix(in srgb, var(--accent) 15%, transparent)', color: 'var(--accent)' }}>설정됨</span>
+            )}
+          </div>
+          {session.passwordHash && (
+            <button className="btn-ghost flex items-center gap-1 text-xs" onClick={removePw}><X size={12} /> 잠금 해제</button>
+          )}
+        </div>
+        <div className="flex gap-2">
+          <input
+            type={showPw ? 'text' : 'password'}
+            className="input flex-1"
+            placeholder={session.passwordHash ? '새 비밀번호로 변경' : '비밀번호 설정'}
+            value={pwInput}
+            onChange={e => setPwInput(e.target.value)}
+          />
+          <input
+            type={showPw ? 'text' : 'password'}
+            className="input flex-1"
+            placeholder="비밀번호 확인"
+            value={pwConfirm}
+            onChange={e => setPwConfirm(e.target.value)}
+          />
+          <button className="btn-ghost" onClick={() => setShowPw(v => !v)}>
+            {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
+          </button>
+          <button className="btn-accent flex items-center gap-1 text-xs px-3" onClick={savePw}>
+            {pwSuccess ? <Check size={14} /> : <Lock size={14} />}
+            {pwSuccess ? '저장됨' : '저장'}
+          </button>
+        </div>
       </div>
 
       {/* CCFOLIA 로그 붙여넣기 영역 */}

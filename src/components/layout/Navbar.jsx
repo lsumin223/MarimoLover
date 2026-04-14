@@ -4,7 +4,7 @@
 // 캐릭터/갤러리/글/TRPG 페이지에서는 두 번째 줄에 WorkSelector 표시
 
 import { NavLink, useLocation, Link } from 'react-router-dom'
-import { Sun, Moon, Settings } from 'lucide-react'
+import { Sun, Moon, Settings, Search } from 'lucide-react'
 import useSettingsStore from '../../store/useSettingsStore'
 import WorkSelector from './WorkSelector'
 
@@ -80,8 +80,25 @@ export default function Navbar() {
           ))}
         </nav>
 
-        {/* 오른쪽: 다크모드 토글 + 설정 */}
+        {/* 오른쪽: 검색 + 다크모드 토글 + 설정 */}
         <div className="flex items-center gap-1 shrink-0">
+          {/* 검색 */}
+          <Link
+            to="/search"
+            className="flex items-center justify-center w-8 h-8 rounded-md transition-colors"
+            style={{ color: 'var(--txm)', textDecoration: 'none' }}
+            aria-label="검색"
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'var(--elevated)'
+              e.currentTarget.style.color = 'var(--tx)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = ''
+              e.currentTarget.style.color = 'var(--txm)'
+            }}
+          >
+            <Search size={15} />
+          </Link>
           {/* 다크/라이트 모드 토글 */}
           <button
             className="flex items-center justify-center w-8 h-8 rounded-md transition-colors"

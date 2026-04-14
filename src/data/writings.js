@@ -1,10 +1,32 @@
-// 초기 글 데이터
+// 초기 글 데이터 — 시리즈 구조
+export const initialSeries = [
+  {
+    id: 'series-1',
+    workId: 'work-1',
+    title: '별과 기사단',
+    description: '별빛 기사단을 배경으로 한 리온과 세라핀의 이야기.',
+    mainCharacters: '리온 아스트레아, 세라핀 루나',
+    thumbnailImageId: null,
+    createdAt: '2024-01-01',
+  },
+  {
+    id: 'series-2',
+    workId: 'work-2',
+    title: '도시의 이면',
+    description: '현대 도시를 무대로 한 요괴 중재자 하야시 켄의 일상.',
+    mainCharacters: '하야시 켄',
+    thumbnailImageId: null,
+    createdAt: '2024-01-10',
+  },
+]
+
 export const initialWritings = [
   {
     id: 'writing-1',
-    title: '별이 지는 날',
+    seriesId: 'series-1',
     workId: 'work-1',
-    characterTags: ['char-1', 'char-2'],
+    chapterNum: 1,
+    title: '별이 지는 날',
     content: `별이 지는 날이면 리온은 언제나 옥상에 올라갔다.
 
 차가운 밤바람이 코트 깃을 파고들었지만, 그는 아랑곳하지 않았다. 저 멀리 수평선 너머로 하나둘 사라지는 별들을 바라보며 그는 조용히 입을 열었다.
@@ -27,9 +49,10 @@ export const initialWritings = [
   },
   {
     id: 'writing-2',
-    title: '중재자의 하루',
+    seriesId: 'series-2',
     workId: 'work-2',
-    characterTags: ['char-3'],
+    chapterNum: 1,
+    title: '중재자의 하루',
     content: `오늘도 하루가 시작됐다.
 
 켄은 알람 소리보다 먼저 눈을 떴다. 창문 너머 골목에서 고양이 요괴 두 마리가 쓰레기통을 두고 싸우는 소리가 들렸기 때문이다. 한숨을 쉬며 창문을 열었다.

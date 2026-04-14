@@ -15,6 +15,7 @@ import Trpg from './pages/Trpg'
 import TrpgSession from './pages/TrpgSession'
 import About from './pages/About'
 import Settings from './pages/Settings'
+import Search from './pages/Search'
 
 // WorkSelector가 표시되는 경로
 const WORK_SELECTOR_PATHS = ['/characters', '/gallery', '/writings']
@@ -51,6 +52,7 @@ function Layout() {
           <Route path="/trpg/:sessionId" element={<TrpgSession />} />
           <Route path="/about" element={<About />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/search" element={<Search />} />
         </Routes>
       </main>
     </>

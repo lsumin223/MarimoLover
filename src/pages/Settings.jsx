@@ -36,6 +36,7 @@ const WIDGET_LABELS = {
   characterCard: '캐릭터 카드',
   profile: '프로필',
   miniGallery: '미니 갤러리',
+  bgm: 'BGM 플레이어',
 }
 
 export default function Settings() {

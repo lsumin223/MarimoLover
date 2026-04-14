@@ -29,9 +29,9 @@ function CharThumb({ imageId, name, size = 40 }) {
 }
 
 // 개인 캐릭터 폼 초기값
-const emptyIndividual = { type: 'individual', workId: '', name: '', bio: '', thumbnailId: null, profile: { age: '', gender: '', personality: '', custom: [] }, relations: [], timeline: [] }
-const emptyPair = { type: 'pair', workId: '', characterA: '', characterB: '', description: '', timeline: [] }
-const emptyGroup = { type: 'group', workId: '', groupName: '', members: [], description: '' }
+const emptyIndividual = { type: 'individual', workId: '', name: '', bio: '', thumbnailImageId: null, profileFields: [], relations: [], timeline: [] }
+const emptyPair = { type: 'pair', workId: '', characterA: '', characterB: '', thumbnailImageId: null, description: '', timeline: [] }
+const emptyGroup = { type: 'group', workId: '', groupName: '', members: [], thumbnailImageId: null, description: '' }
 
 export default function Characters() {
   const navigate = useNavigate()
@@ -96,7 +96,7 @@ export default function Characters() {
     const base64 = await resizeImage(file)
     const id = genId()
     await saveImage(id, base64)
-    setForm(f => ({ ...f, thumbnailId: id }))
+    setForm(f => ({ ...f, thumbnailImageId: id }))
     setThumbPreview(base64)
   }
 
@@ -219,37 +219,28 @@ export default function Characters() {
               <div>
                 <label className="block text-xs font-medium mb-1" style={{ color: 'var(--txm)' }}>썸네일 이미지</label>
                 <div className="flex items-center gap-3">
-                  {(thumbPreview || form.thumbnailId) && (
-                    <CharThumb imageId={thumbPreview ? null : form.thumbnailId} name={form.name} size={48} />
-                  )}
-                  {thumbPreview && <img src={thumbPreview} alt="" className="w-12 h-12 rounded-full object-cover" style={{ border: '2px solid var(--border)' }} />}
+                  {thumbPreview
+                    ? <img src={thumbPreview} alt="" className="w-12 h-12 rounded-full object-cover" style={{ border: '2px solid var(--border)' }} />
+                    : <CharThumb imageId={form.thumbnailImageId} name={form.name} size={48} />
+                  }
                   <label className="btn-ghost cursor-pointer text-xs">
                     이미지 선택
                     <input type="file" accept="image/*" className="hidden" onChange={handleThumb} />
                   </label>
                 </div>
               </div>
-              {/* 프로필 */}
-              <div className="grid grid-cols-3 gap-3">
-                {[['age', '나이'], ['gender', '성별'], ['personality', '성격']].map(([k, l]) => (
-                  <div key={k}>
-                    <label className="block text-xs font-medium mb-1" style={{ color: 'var(--txm)' }}>{l}</label>
-                    <input className="input" value={form.profile?.[k] || ''} onChange={e => setForm(f => ({ ...f, profile: { ...f.profile, [k]: e.target.value } }))} />
-                  </div>
-                ))}
-              </div>
-              {/* 커스텀 필드 */}
+              {/* 커스텀 프로필 필드 */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-medium" style={{ color: 'var(--txm)' }}>추가 항목</span>
+                  <span className="text-xs font-medium" style={{ color: 'var(--txm)' }}>프로필 항목</span>
                   <button className="text-xs" style={{ color: 'var(--accent)' }}
-                    onClick={() => setForm(f => ({ ...f, profile: { ...f.profile, custom: [...(f.profile?.custom || []), { label: '', value: '' }] } }))}>+ 추가</button>
+                    onClick={() => setForm(f => ({ ...f, profileFields: [...(f.profileFields || []), { id: genId(), label: '', value: '' }] }))}>+ 추가</button>
                 </div>
-                {(form.profile?.custom || []).map((c, i) => (
-                  <div key={i} className="flex gap-2 mb-2">
-                    <input className="input" style={{ width: '35%' }} placeholder="항목명" value={c.label} onChange={e => setForm(f => { const custom = [...f.profile.custom]; custom[i] = { ...custom[i], label: e.target.value }; return { ...f, profile: { ...f.profile, custom } } })} />
-                    <input className="input flex-1" placeholder="내용" value={c.value} onChange={e => setForm(f => { const custom = [...f.profile.custom]; custom[i] = { ...custom[i], value: e.target.value }; return { ...f, profile: { ...f.profile, custom } } })} />
-                    <button onClick={() => setForm(f => { const custom = f.profile.custom.filter((_, j) => j !== i); return { ...f, profile: { ...f.profile, custom } } })} style={{ color: 'var(--txs)' }}><X size={14} /></button>
+                {(form.profileFields || []).map((pf, i) => (
+                  <div key={pf.id} className="flex gap-2 mb-2">
+                    <input className="input" style={{ width: '35%' }} placeholder="항목명" value={pf.label} onChange={e => setForm(f => { const pfs = [...f.profileFields]; pfs[i] = { ...pfs[i], label: e.target.value }; return { ...f, profileFields: pfs } })} />
+                    <input className="input flex-1" placeholder="내용" value={pf.value} onChange={e => setForm(f => { const pfs = [...f.profileFields]; pfs[i] = { ...pfs[i], value: e.target.value }; return { ...f, profileFields: pfs } })} />
+                    <button onClick={() => setForm(f => ({ ...f, profileFields: f.profileFields.filter((_, j) => j !== i) }))} style={{ color: 'var(--txs)' }}><X size={14} /></button>
                   </div>
                 ))}
               </div>
@@ -389,7 +380,7 @@ export default function Characters() {
 function CharCard({ char, works, characters, onEdit, onDelete, onClick }) {
   const [hovered, setHovered] = useState(false)
   const getName = (id) => characters.find(c => c.id === id)?.name || '?'
-  const getThumb = (id) => characters.find(c => c.id === id)?.thumbnailId || null
+  const getThumb = (id) => characters.find(c => c.id === id)?.thumbnailImageId || null
 
   const typeBadge = { individual: '개인', pair: '페어', group: '그룹' }[char.type]
   const typeColor = { individual: 'var(--accent)', pair: 'var(--accent2)', group: 'var(--txm)' }[char.type]
@@ -411,7 +402,7 @@ function CharCard({ char, works, characters, onEdit, onDelete, onClick }) {
 
       {char.type === 'individual' && (
         <div className="flex flex-col items-center text-center gap-2">
-          <CharThumb imageId={char.thumbnailId} name={char.name} size={56} />
+          <CharThumb imageId={char.thumbnailImageId} name={char.name} size={56} />
           <div>
             <div className="font-bold text-sm" style={{ color: 'var(--tx)' }}>{char.name}</div>
             <div className="text-xs mt-0.5" style={{ color: 'var(--txm)' }}>{getWorkTitle(char.workId, works)}</div>
@@ -456,7 +447,7 @@ function CharCard({ char, works, characters, onEdit, onDelete, onClick }) {
 // 캐릭터 상세 모달
 function CharDetailModal({ char, works, characters, posts, writings, getCharLogs, getPairLogs, activeTab, setActiveTab, onClose, onEdit, onNavigateChar, navigate }) {
   const getName = (id) => characters.find(c => c.id === id)?.name || '?'
-  const getThumb = (id) => characters.find(c => c.id === id)?.thumbnailId || null
+  const getThumb = (id) => characters.find(c => c.id === id)?.thumbnailImageId || null
 
   const tabs = char.type === 'individual'
     ? [['profile', '프로필'], ['relation', '관계'], ['timeline', '타임라인'], ['log', '로그']]
@@ -487,17 +478,17 @@ function CharDetailModal({ char, works, characters, posts, writings, getCharLogs
       {/* 개인 — 프로필 */}
       {activeTab === 'profile' && char.type === 'individual' && (
         <div className="flex gap-5">
-          <CharThumb imageId={char.thumbnailId} name={char.name} size={80} />
+          <CharThumb imageId={char.thumbnailImageId} name={char.name || char.groupName} size={80} />
           <div className="flex-1">
             <div className="text-lg font-bold mb-1" style={{ color: 'var(--tx)' }}>{char.name}</div>
             <div className="text-xs mb-2" style={{ color: 'var(--txm)' }}>{getWorkTitle(char.workId, works)}</div>
             {char.bio && <p className="text-sm mb-3" style={{ color: 'var(--tx)' }}>{char.bio}</p>}
             <div className="grid grid-cols-2 gap-2">
-              {char.profile?.age && <div className="text-xs"><span style={{ color: 'var(--txm)' }}>나이 </span><span style={{ color: 'var(--tx)' }}>{char.profile.age}</span></div>}
-              {char.profile?.gender && <div className="text-xs"><span style={{ color: 'var(--txm)' }}>성별 </span><span style={{ color: 'var(--tx)' }}>{char.profile.gender}</span></div>}
-              {char.profile?.personality && <div className="text-xs col-span-2"><span style={{ color: 'var(--txm)' }}>성격 </span><span style={{ color: 'var(--tx)' }}>{char.profile.personality}</span></div>}
-              {char.profile?.custom?.map((c, i) => (
-                <div key={i} className="text-xs"><span style={{ color: 'var(--txm)' }}>{c.label} </span><span style={{ color: 'var(--tx)' }}>{c.value}</span></div>
+              {(char.profileFields || []).map((pf) => (
+                <div key={pf.id} className="text-xs">
+                  <span style={{ color: 'var(--txm)' }}>{pf.label} </span>
+                  <span style={{ color: 'var(--tx)' }}>{pf.value}</span>
+                </div>
               ))}
             </div>
           </div>

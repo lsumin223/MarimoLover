@@ -1,12 +1,21 @@
 // TRPG 페이지 — 캠페인/세션 목록 관리
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, Edit2, Trash2, ChevronRight, Gamepad2 } from 'lucide-react'
+import { Plus, Edit2, Trash2, ChevronRight, Gamepad2, Image as ImageIcon, Lock } from 'lucide-react'
 import useTrpgStore from '../store/useTrpgStore'
 import Modal from '../components/common/Modal'
 import ConfirmDialog from '../components/common/ConfirmDialog'
+import { getImage, saveImage, resizeImage } from '../lib/imageDB'
 
 const genId = () => 'id-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7)
+
+// 캠페인 커버 이미지
+function CoverThumb({ imageId, title }) {
+  const [src, setSrc] = useState(null)
+  useEffect(() => { if (imageId) getImage(imageId).then(setSrc) }, [imageId])
+  if (src) return <img src={src} alt={title} className="w-full h-full object-cover" />
+  return <div className="w-full h-full flex items-center justify-center"><Gamepad2 size={14} style={{ color: 'var(--txm)' }} /></div>
+}
 
 export default function Trpg() {
   const navigate = useNavigate()
@@ -17,7 +26,18 @@ export default function Trpg() {
   // 캠페인 폼
   const [campaignFormOpen, setCampaignFormOpen] = useState(false)
   const [campaignEdit, setCampaignEdit] = useState(null)
-  const [campaignForm, setCampaignForm] = useState({ title: '', system: '', description: '' })
+  const [campaignForm, setCampaignForm] = useState({ title: '', system: '', description: '', coverImageId: null })
+  const [coverPreview, setCoverPreview] = useState(null)
+
+  // 커버 이미지 업로드
+  const handleCoverUpload = async (e) => {
+    const file = e.target.files[0]; if (!file) return
+    const b64 = await resizeImage(file, 800)
+    const id = genId()
+    await saveImage(id, b64)
+    setCampaignForm(f => ({ ...f, coverImageId: id }))
+    setCoverPreview(b64)
+  }
 
   // 세션 폼
   const [sessionFormOpen, setSessionFormOpen] = useState(false)
@@ -67,7 +87,7 @@ export default function Trpg() {
             <button
               className="w-6 h-6 rounded flex items-center justify-center transition-colors"
               style={{ color: 'var(--accent)', background: 'color-mix(in srgb, var(--accent) 12%, transparent)' }}
-              onClick={() => { setCampaignEdit(null); setCampaignForm({ title: '', system: '', description: '' }); setCampaignFormOpen(true) }}
+              onClick={() => { setCampaignEdit(null); setCampaignForm({ title: '', system: '', description: '', coverImageId: null }); setCoverPreview(null); setCampaignFormOpen(true) }}
             ><Plus size={14} /></button>
           </div>
 
@@ -83,14 +103,16 @@ export default function Trpg() {
                 }}
                 onClick={() => setSelectedCampaignId(c.id)}
               >
-                <Gamepad2 size={14} style={{ color: selectedCampaignId === c.id ? 'var(--accent)' : 'var(--txm)', shrink: 0 }} />
+                <div className="w-7 h-7 rounded overflow-hidden shrink-0" style={{ background: 'var(--elevated)', border: '1px solid var(--border)' }}>
+                  <CoverThumb imageId={c.coverImageId} title={c.title} />
+                </div>
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-medium truncate" style={{ color: selectedCampaignId === c.id ? 'var(--accent)' : 'var(--tx)' }}>{c.title}</div>
                   {c.system && <div className="text-xs truncate" style={{ color: 'var(--txs)' }}>{c.system}</div>}
                 </div>
                 {/* 편집/삭제 */}
                 <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
-                  <button className="w-5 h-5 rounded flex items-center justify-center" style={{ color: 'var(--txm)' }} onClick={() => { setCampaignEdit(c); setCampaignForm({ title: c.title, system: c.system, description: c.description }); setCampaignFormOpen(true) }}><Edit2 size={11} /></button>
+                  <button className="w-5 h-5 rounded flex items-center justify-center" style={{ color: 'var(--txm)' }} onClick={() => { setCampaignEdit(c); setCampaignForm({ title: c.title, system: c.system || '', description: c.description || '', coverImageId: c.coverImageId || null }); setCoverPreview(null); setCampaignFormOpen(true) }}><Edit2 size={11} /></button>
                   <button className="w-5 h-5 rounded flex items-center justify-center" style={{ color: '#f87171' }} onClick={() => setDeleteCampaignTarget(c)}><Trash2 size={11} /></button>
                 </div>
               </div>
@@ -110,10 +132,17 @@ export default function Trpg() {
           ) : (
             <>
               <div className="flex items-start justify-between mb-5">
-                <div>
-                  <h2 className="text-lg font-bold" style={{ color: 'var(--tx)' }}>{currentCampaign.title}</h2>
-                  {currentCampaign.system && <div className="text-xs mt-0.5" style={{ color: 'var(--txm)' }}>{currentCampaign.system}</div>}
-                  {currentCampaign.description && <p className="text-sm mt-2" style={{ color: 'var(--txm)' }}>{currentCampaign.description}</p>}
+                <div className="flex gap-4">
+                  {currentCampaign.coverImageId && (
+                    <div className="w-16 h-16 rounded-lg overflow-hidden shrink-0" style={{ border: '1px solid var(--border)' }}>
+                      <CoverThumb imageId={currentCampaign.coverImageId} title={currentCampaign.title} />
+                    </div>
+                  )}
+                  <div>
+                    <h2 className="text-lg font-bold" style={{ color: 'var(--tx)' }}>{currentCampaign.title}</h2>
+                    {currentCampaign.system && <div className="text-xs mt-0.5" style={{ color: 'var(--txm)' }}>{currentCampaign.system}</div>}
+                    {currentCampaign.description && <p className="text-sm mt-2" style={{ color: 'var(--txm)' }}>{currentCampaign.description}</p>}
+                  </div>
                 </div>
                 <button
                   className="btn-accent flex items-center gap-1.5 shrink-0 ml-4"
@@ -148,6 +177,7 @@ export default function Trpg() {
                         {session.summary && <div className="text-xs mt-0.5 truncate" style={{ color: 'var(--txm)' }}>{session.summary}</div>}
                       </div>
                       <div className="text-xs shrink-0" style={{ color: 'var(--txs)' }}>{session.date}</div>
+                      {session.passwordHash && <Lock size={13} style={{ color: 'var(--txm)', flexShrink: 0 }} />}
                       {session.log?.length > 0 && <div className="text-xs shrink-0 px-2 py-0.5 rounded" style={{ background: 'var(--elevated)', color: 'var(--txm)' }}>{session.log.length}줄</div>}
                       <ChevronRight size={16} style={{ color: 'var(--txs)', flexShrink: 0 }} />
                       {/* 편집/삭제 */}
@@ -167,6 +197,19 @@ export default function Trpg() {
       {/* 캠페인 폼 모달 */}
       <Modal isOpen={campaignFormOpen} onClose={() => setCampaignFormOpen(false)} title={campaignEdit ? '캠페인 수정' : '새 캠페인'} size="sm">
         <div className="space-y-3">
+          {/* 커버 이미지 */}
+          <div className="flex items-center gap-3">
+            <div className="w-16 h-12 rounded-lg overflow-hidden shrink-0" style={{ background: 'var(--elevated)', border: '1px solid var(--border)' }}>
+              {coverPreview
+                ? <img src={coverPreview} alt="" className="w-full h-full object-cover" />
+                : <CoverThumb imageId={campaignForm.coverImageId} title={campaignForm.title} />
+              }
+            </div>
+            <label className="btn-ghost text-xs cursor-pointer">
+              커버 이미지 업로드
+              <input type="file" accept="image/*" className="hidden" onChange={handleCoverUpload} />
+            </label>
+          </div>
           <div>
             <label className="block text-xs font-medium mb-1" style={{ color: 'var(--txm)' }}>캠페인명 *</label>
             <input className="input" value={campaignForm.title} onChange={e => setCampaignForm(f => ({ ...f, title: e.target.value }))} placeholder="캠페인 이름" />

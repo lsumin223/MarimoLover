@@ -39,6 +39,7 @@ const useSettingsStore = create(
         characterCard: true,
         profile: true,
         miniGallery: true,
+        bgm: true,
       },
 
       // 위젯 레이아웃 설정
