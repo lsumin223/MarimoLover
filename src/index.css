@@ -1,111 +1,320 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* =============================================
+   디자인 토큰 — CSS 변수
+   설정 페이지에서 accent / accent2 를 JS로 덮어씁니다
+   ============================================= */
+
+/* 기본: 다크 테마 */
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+  --bg:       #0e0e17;
+  --surface:  #17172a;
+  --elevated: #1f1f35;
+  --border:   #2a2a45;
+  --accent:   #b48ef0;   /* 소프트 바이올렛 */
+  --accent2:  #f093b0;   /* 소프트 핑크 */
+  --tx:       #e4e2f0;
+  --txm:      #9795aa;
+  --txs:      #5a5870;
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
-
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
+  /* 스크롤바 */
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
+/* 라이트 테마 */
+[data-theme="light"] {
+  --bg:       #f3f0f8;
+  --surface:  #ffffff;
+  --elevated: #faf8fd;
+  --border:   #ddd9ec;
+  --accent:   #7c4dce;
+  --accent2:  #d94f84;
+  --tx:       #1a1730;
+  --txm:      #5e5a72;
+  --txs:      #9895aa;
+}
 
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
+/* =============================================
+   기본 리셋 & 글로벌 스타일
+   ============================================= */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 15px;
 }
 
 body {
   margin: 0;
+  background-color: var(--bg);
+  color: var(--tx);
+  font-family: 'Noto Sans KR', system-ui, sans-serif;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.2s, color 0.2s;
 }
 
 #root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
+  min-height: 100vh;
+}
+
+/* =============================================
+   스크롤바
+   ============================================= */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--txs); }
+
+/* =============================================
+   react-grid-layout 드래그 핸들 스타일
+   ============================================= */
+.react-grid-item {
+  transition: none !important;
+}
+.react-grid-item.react-grid-placeholder {
+  background: var(--accent);
+  opacity: 0.08;
+  border-radius: 12px;
+  border: 2px dashed var(--accent);
+}
+.react-grid-item > .react-resizable-handle {
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.react-grid-item:hover > .react-resizable-handle {
+  opacity: 0.5;
+}
+.react-resizable-handle::after {
+  border-color: var(--accent) !important;
+}
+
+/* =============================================
+   위젯 공통 스타일
+   ============================================= */
+.widget {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  box-sizing: border-box;
+  height: 100%;
 }
 
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
+.widget-header {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--txm);
+  flex-shrink: 0;
 }
 
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
+.widget-header-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
 }
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
+
+.widget-body {
+  padding: 12px 14px;
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
-p {
+
+/* 드래그 핸들 */
+.drag-handle {
+  cursor: grab;
+}
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+/* =============================================
+   컴포넌트 유틸
+   ============================================= */
+.btn-accent {
+  @apply px-4 py-1.5 rounded-md text-sm font-medium transition-all duration-150;
+  background: var(--accent);
+  color: var(--bg);
+}
+.btn-accent:hover {
+  filter: brightness(1.1);
+}
+
+.btn-ghost {
+  @apply px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-150;
+  color: var(--txm);
+  border: 1px solid var(--border);
+}
+.btn-ghost:hover {
+  background: var(--elevated);
+  color: var(--tx);
+}
+
+.btn-danger {
+  @apply px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-150;
+  color: #f87171;
+  border: 1px solid rgba(248,113,113,0.3);
+}
+.btn-danger:hover {
+  background: rgba(248,113,113,0.1);
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.card:hover {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent)18;
+}
+
+.input {
+  @apply w-full px-3 py-2 rounded-md text-sm outline-none transition-all;
+  background: var(--elevated);
+  border: 1px solid var(--border);
+  color: var(--tx);
+}
+.input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent);
+}
+.input::placeholder {
+  color: var(--txs);
+}
+
+.textarea {
+  @apply w-full px-3 py-2 rounded-md text-sm outline-none transition-all resize-none;
+  background: var(--elevated);
+  border: 1px solid var(--border);
+  color: var(--tx);
+  font-family: inherit;
+}
+.textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent);
+}
+.textarea::placeholder {
+  color: var(--txs);
+}
+
+/* 태그 뱃지 */
+.tag {
+  @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-medium;
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+}
+
+/* 구분선 */
+.divider {
+  border: none;
+  border-top: 1px solid var(--border);
   margin: 0;
 }
 
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
+/* =============================================
+   글 뷰어 — 커스텀 스타일
+   ============================================= */
+.writing-viewer-content {
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: inherit;
 }
 
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
+.writing-viewer-content hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 2em auto;
+  width: 40%;
+}
+
+/* =============================================
+   달력 위젯
+   ============================================= */
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.calendar-day {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  border-radius: 6px;
+  cursor: default;
+}
+
+.calendar-day.today {
+  background: var(--accent);
+  color: var(--bg);
+  font-weight: 700;
+}
+
+.calendar-day.has-content {
+  position: relative;
+}
+.calendar-day.has-content::after {
+  content: '';
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--accent2);
+}
+
+/* =============================================
+   애니메이션 유틸
+   ============================================= */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.animate-fade-in { animation: fadeIn 0.2s ease-out; }
+.animate-slide-up { animation: slideUp 0.25s ease-out; }
+.animate-scale-in { animation: scaleIn 0.15s ease-out; }
+
+/* TRPG 로그 뷰어 */
+.trpg-log-entry {
+  @apply flex gap-2 py-1.5 px-2 rounded text-sm leading-relaxed;
+}
+.trpg-log-entry:hover {
+  background: var(--elevated);
+}
+.trpg-channel-badge {
+  @apply text-xs px-1.5 py-0.5 rounded shrink-0 font-mono;
+  background: var(--elevated);
+  color: var(--txs);
 }
