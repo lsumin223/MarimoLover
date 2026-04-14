@@ -2,15 +2,13 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Plus, Edit2, Trash2, X, Image as ImageIcon, Lock, ChevronLeft, ChevronRight, Eye, EyeOff } from 'lucide-react'
-import useSettingsStore from '../store/useSettingsStore'
-import useWorkStore from '../store/useWorkStore'
 import useGalleryStore from '../store/useGalleryStore'
 import Modal from '../components/common/Modal'
 import ConfirmDialog from '../components/common/ConfirmDialog'
+import TagInput from '../components/common/TagInput'
 import { getImage, saveImage, deleteImage, resizeImage } from '../lib/imageDB'
 
 const genId = () => 'id-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7)
-const getWorkTitle = (workId, works) => works.find(w => w.id === workId)?.title || '미분류'
 
 async function sha256(text) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text))
@@ -38,7 +36,7 @@ function Lightbox({ post, initialIdx, onClose }) {
   const ids = post.imageIds || []
 
   useEffect(() => {
-    Promise.all(ids.map(id => getImage(id))).then(setSrcs)
+    if (ids.length > 0) Promise.all(ids.map(id => getImage(id))).then(setSrcs)
   }, [ids.join(',')])
 
   const goNext = useCallback(() => setIdx(i => (i + 1) % ids.length), [ids.length])
@@ -63,11 +61,22 @@ function Lightbox({ post, initialIdx, onClose }) {
       {/* 닫기 */}
       <button className="absolute top-4 right-4 w-9 h-9 rounded-full flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.1)', color: 'white' }} onClick={onClose}><X size={18} /></button>
 
-      {/* 이미지 */}
+      {/* 이미지 or 텍스트 카드 */}
       <div className="relative flex items-center justify-center w-full h-full px-16" onClick={e => e.stopPropagation()}>
-        {srcs[idx] && (
+        {ids.length === 0 ? (
+          <div className="p-8 rounded-xl text-center" style={{ background: 'rgba(255,255,255,0.06)', maxWidth: 360 }}>
+            <ImageIcon size={32} className="mx-auto mb-3" style={{ color: 'rgba(255,255,255,0.3)' }} />
+            <div className="text-white font-bold text-lg mb-1">{post.title}</div>
+            <div className="text-sm mb-2" style={{ color: 'rgba(255,255,255,0.5)' }}>{post.date}</div>
+            {(post.tags || []).length > 0 && (
+              <div className="flex flex-wrap gap-1 justify-center mt-3">
+                {post.tags.map(t => <span key={t} className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.7)' }}>{t}</span>)}
+              </div>
+            )}
+          </div>
+        ) : srcs[idx] ? (
           <img src={srcs[idx]} alt="" className="max-w-full max-h-full object-contain rounded-lg select-none" style={{ maxHeight: '90vh' }} />
-        )}
+        ) : null}
       </div>
 
       {/* 이전/다음 */}
@@ -140,11 +149,9 @@ function PasswordModal({ onConfirm, onCancel, correctHash }) {
   )
 }
 
-const emptyForm = { title: '', workId: '', imageIds: [], date: new Date().toISOString().slice(0, 10), passwordHash: null }
+const emptyForm = { title: '', imageIds: [], date: new Date().toISOString().slice(0, 10), passwordHash: null, tags: [] }
 
 export default function Gallery() {
-  const { selectedWorkId } = useSettingsStore()
-  const { works } = useWorkStore()
   const { posts, addPost, updatePost, deletePost } = useGalleryStore()
 
   // 폼 상태
@@ -165,24 +172,22 @@ export default function Gallery() {
   const [pwModal, setPwModal] = useState(null) // {post}
   const [unlockedIds, setUnlockedIds] = useState(new Set())
 
-  // 필터링
-  const filtered = posts
-    .filter(p => !selectedWorkId || p.workId === selectedWorkId)
-    .sort((a, b) => b.date.localeCompare(a.date))
+  // 날짜 내림차순 정렬
+  const filtered = [...posts].sort((a, b) => b.date.localeCompare(a.date))
 
   // 카드 클릭 — 비밀글이면 비번 모달, 아니면 라이트박스
   const handleCardClick = (post) => {
     if (post.passwordHash && !unlockedIds.has(post.id)) {
       setPwModal({ post })
     } else {
-      if ((post.imageIds?.length || 0) > 0) setLightbox({ post, imgIdx: 0 })
+      setLightbox({ post, imgIdx: 0 })
     }
   }
 
   // 폼 열기
   const openCreate = () => {
     setEditTarget(null)
-    setForm({ ...emptyForm, workId: selectedWorkId || '' })
+    setForm({ ...emptyForm })
     setPreviews([])
     setPwInput('')
     setShowPwInput(false)
@@ -298,18 +303,13 @@ export default function Gallery() {
             <label className="block text-xs font-medium mb-1" style={{ color: 'var(--txm)' }}>제목 *</label>
             <input className="input" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="제목" />
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-medium mb-1" style={{ color: 'var(--txm)' }}>작품</label>
-              <select className="input" value={form.workId || ''} onChange={e => setForm(f => ({ ...f, workId: e.target.value }))}>
-                <option value="">미분류</option>
-                {works.map(w => <option key={w.id} value={w.id}>{w.title}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-medium mb-1" style={{ color: 'var(--txm)' }}>날짜</label>
-              <input className="input" type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} />
-            </div>
+          <div>
+            <label className="block text-xs font-medium mb-1" style={{ color: 'var(--txm)' }}>날짜</label>
+            <input className="input" type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} />
+          </div>
+          <div>
+            <label className="block text-xs font-medium mb-1" style={{ color: 'var(--txm)' }}>태그 (캐릭터명 등)</label>
+            <TagInput tags={form.tags || []} onChange={v => setForm(f => ({ ...f, tags: v }))} placeholder="태그 입력 후 Enter" />
           </div>
 
           {/* 비밀글 설정 */}
@@ -361,10 +361,10 @@ export default function Gallery() {
         <PasswordModal
           correctHash={pwModal.post.passwordHash}
           onConfirm={() => {
-            setUnlockedIds(s => new Set([...s, pwModal.post.id]))
             const post = pwModal.post
+            setUnlockedIds(s => new Set([...s, post.id]))
             setPwModal(null)
-            if ((post.imageIds?.length || 0) > 0) setLightbox({ post, imgIdx: 0 })
+            setLightbox({ post, imgIdx: 0 })
           }}
           onCancel={() => setPwModal(null)}
         />

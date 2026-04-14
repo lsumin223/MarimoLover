@@ -1,11 +1,5 @@
-// 홈 대시보드 — react-grid-layout 기반 위젯 배치 페이지
-// react-grid-layout v2: ResponsiveGridLayout이 WidthProvider 내장
-import { ResponsiveGridLayout } from 'react-grid-layout'
-import 'react-grid-layout/css/styles.css'
-import 'react-resizable/css/styles.css'
-
+// 홈 대시보드 — 고정 3열 레이아웃 (react-grid-layout 제거)
 import useSettingsStore from '../store/useSettingsStore'
-
 import MainVisual from '../components/widgets/MainVisual'
 import CalendarWidget from '../components/widgets/CalendarWidget'
 import ArchiveWidget from '../components/widgets/ArchiveWidget'
@@ -15,21 +9,6 @@ import ProfileWidget from '../components/widgets/ProfileWidget'
 import MiniGalleryWidget from '../components/widgets/MiniGalleryWidget'
 import BgmWidget from '../components/widgets/BgmWidget'
 
-// 기본 레이아웃 (lg 브레이크포인트, 12 컬럼)
-const DEFAULT_LAYOUTS = {
-  lg: [
-    { i: 'mainVisual',    x: 0, y: 0,  w: 4, h: 8, minW: 3, minH: 5 },
-    { i: 'calendar',      x: 0, y: 8,  w: 2, h: 6, minW: 2, minH: 5 },
-    { i: 'miniGallery',   x: 2, y: 8,  w: 2, h: 6, minW: 2, minH: 4 },
-    { i: 'archive',       x: 4, y: 0,  w: 4, h: 7, minW: 3, minH: 4 },
-    { i: 'trpg',          x: 4, y: 7,  w: 4, h: 7, minW: 3, minH: 4 },
-    { i: 'characterCard', x: 8, y: 0,  w: 4, h: 7, minW: 3, minH: 4 },
-    { i: 'profile',       x: 8, y: 7,  w: 2, h: 5, minW: 2, minH: 4 },
-    { i: 'bgm',           x: 10, y: 7, w: 2, h: 5, minW: 2, minH: 4 },
-  ],
-}
-
-// 위젯 키 → 컴포넌트 매핑
 const WIDGET_MAP = {
   mainVisual:    MainVisual,
   calendar:      CalendarWidget,
@@ -41,61 +20,58 @@ const WIDGET_MAP = {
   bgm:           BgmWidget,
 }
 
+// 데스크톱 3열 배치 순서
+const LEFT_COL   = ['mainVisual', 'calendar', 'miniGallery']
+const CENTER_COL = ['archive', 'trpg']
+const RIGHT_COL  = ['characterCard', 'profile', 'bgm']
+
+function Widget({ id }) {
+  const W = WIDGET_MAP[id]
+  if (!W) return null
+  return (
+    <div className="rounded-xl overflow-hidden" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+      <W />
+    </div>
+  )
+}
+
+function Column({ keys, activeWidgets }) {
+  const active = keys.filter(k => activeWidgets[k])
+  if (active.length === 0) return null
+  return (
+    <div className="space-y-3">
+      {active.map(k => <Widget key={k} id={k} />)}
+    </div>
+  )
+}
+
 export default function Home() {
-  const { activeWidgets, widgetLayouts, setWidgetLayouts } = useSettingsStore()
-
-  // 저장된 레이아웃이 없으면 기본 레이아웃 사용
-  const layouts =
-    widgetLayouts && Object.keys(widgetLayouts).length > 0
-      ? widgetLayouts
-      : DEFAULT_LAYOUTS
-
-  // 레이아웃 변경 핸들러 — 브레이크포인트별 저장
-  const handleLayoutChange = (_layout, allLayouts) => {
-    setWidgetLayouts(allLayouts)
-  }
-
-  // 활성화된 위젯 키 목록
-  const activeKeys = Object.entries(activeWidgets)
-    .filter(([, active]) => active)
-    .map(([key]) => key)
-
-  // 활성화된 위젯에 맞게 레이아웃 항목 필터링
-  const filteredLayouts = {
-    ...layouts,
-    lg: (layouts.lg || DEFAULT_LAYOUTS.lg).filter((item) =>
-      activeKeys.includes(item.i)
-    ),
-  }
+  const { activeWidgets } = useSettingsStore()
 
   return (
-    <div className="pt-14 min-h-screen bg-bg">
-      <ResponsiveGridLayout
-        className="layout"
-        layouts={filteredLayouts}
-        breakpoints={{ lg: 1200, md: 768, sm: 480, xs: 0 }}
-        cols={{ lg: 12, md: 8, sm: 4, xs: 2 }}
-        rowHeight={40}
-        margin={[8, 8]}
-        draggableHandle=".drag-handle"
-        onLayoutChange={handleLayoutChange}
-        isResizable
-        isDraggable
-      >
-        {activeKeys.map((key) => {
-          const WidgetComponent = WIDGET_MAP[key]
-          if (!WidgetComponent) return null
-          return (
-            <div
-              key={key}
-              className="overflow-hidden rounded-xl border border-border"
-              style={{ background: 'var(--surface)' }}
-            >
-              <WidgetComponent />
-            </div>
-          )
-        })}
-      </ResponsiveGridLayout>
+    <div className="pt-14 min-h-screen" style={{ background: 'var(--bg)' }}>
+      <div className="max-w-7xl mx-auto px-3 py-3">
+        {/*
+          모바일:  1열 (flex-col)
+          데스크톱 (lg+): 3열 — 왼쪽 고정 / 중간 가변 / 오른쪽 고정
+        */}
+        <div className="flex flex-col lg:flex-row gap-3">
+          {/* 왼쪽 */}
+          <div className="lg:w-72 shrink-0 space-y-3">
+            <Column keys={LEFT_COL} activeWidgets={activeWidgets} />
+          </div>
+
+          {/* 가운데 */}
+          <div className="flex-1 space-y-3">
+            <Column keys={CENTER_COL} activeWidgets={activeWidgets} />
+          </div>
+
+          {/* 오른쪽 */}
+          <div className="lg:w-64 shrink-0 space-y-3">
+            <Column keys={RIGHT_COL} activeWidgets={activeWidgets} />
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
