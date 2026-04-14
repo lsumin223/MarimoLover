@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>창작 공간 — 목업</title>
+<style>
+:root {
+  --bg: #0e0e17;
+  --surface: #17172a;
+  --elevated: #1f1f35;
+  --border: #2a2a45;
+  --accent: #b48ef0;
+  --accent2: #f093b0;
+  --tx: #e4e2f0;
+  --txm: #9795aa;
+  --txs: #5a5870;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--tx);
+  font-family: 'Noto Sans KR', system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+/* Navbar */
+.navbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+  height: 48px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 20px;
+  background: rgba(23,23,42,0.88);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+.navbar-logo {
+  font-size: 13px; font-weight: 700; letter-spacing: 0.05em;
+  color: var(--accent); text-decoration: none;
+}
+.navbar-links { display: flex; gap: 2px; }
+.nav-link {
+  padding: 5px 12px; border-radius: 6px;
+  font-size: 12px; font-weight: 500; color: var(--txm);
+  text-decoration: none; position: relative; transition: color .15s;
+}
+.nav-link:hover { color: var(--tx); }
+.nav-link.active { color: var(--accent); }
+.nav-link.active::after {
+  content: ''; position: absolute; bottom: 2px; left: 12px; right: 12px;
+  height: 2px; border-radius: 1px; background: var(--accent);
+}
+.navbar-right { display: flex; gap: 6px; align-items: center; }
+.icon-btn {
+  width: 32px; height: 32px; border-radius: 7px; border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  background: transparent; color: var(--txm); font-size: 15px; transition: .15s;
+}
+.icon-btn:hover { background: var(--elevated); color: var(--tx); }
+
+/* Work selector */
+.work-selector {
+  position: fixed; top: 48px; left: 0; right: 0; z-index: 49;
+  display: flex; gap: 6px; padding: 6px 20px;
+  background: rgba(23,23,42,0.88); backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+}
+.work-chip {
+  padding: 2px 12px; border-radius: 999px; font-size: 11px; font-weight: 500;
+  cursor: pointer; white-space: nowrap; transition: .15s;
+  border: 1px solid var(--border); color: var(--txm); background: transparent;
+}
+.work-chip.active { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+
+/* Layout */
+.main { padding-top: 48px; }
+.page { padding: 16px; min-height: calc(100vh - 48px); }
+
+/* Widget grid */
+.dashboard {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  grid-auto-rows: 40px;
+  gap: 8px;
+  padding: 8px;
+}
+.widget {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex; flex-direction: column;
+}
+.widget:hover { border-color: color-mix(in srgb, var(--accent) 50%, var(--border)); }
+.w-header {
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 6px;
+  font-size: 10px; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--txm);
+  flex-shrink: 0; cursor: grab;
+}
+.w-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+.w-body { padding: 12px 14px; flex: 1; overflow: hidden; }
+
+/* Grid positions */
+.w-main    { grid-column: 1/5;  grid-row: 1/9; }
+.w-cal     { grid-column: 1/3;  grid-row: 9/15; }
+.w-mini    { grid-column: 3/5;  grid-row: 9/15; }
+.w-archive { grid-column: 5/9;  grid-row: 1/8; }
+.w-trpg    { grid-column: 5/9;  grid-row: 8/15; }
+.w-chars   { grid-column: 9/13; grid-row: 1/8; }
+.w-profile { grid-column: 9/13; grid-row: 8/15; }
+
+/* Misc */
+.tag {
+  display: inline-flex; align-items: center;
+  padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500;
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+}
+.tag2 {
+  background: color-mix(in srgb, var(--accent2) 12%, transparent);
+  color: var(--accent2);
+  border: 1px solid color-mix(in srgb, var(--accent2) 25%, transparent);
+}
+.avatar {
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-weight: 700; flex-shrink: 0;
+  border: 2px solid var(--border);
+}
+.divider { border: none; border-top: 1px solid var(--border); }
+.muted { color: var(--txm); }
+.subtle { color: var(--txs); }
+.accent { color: var(--accent); }
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <a class="navbar-logo" href="#">✦ 마리모</a>
+  <div class="navbar-links">
+    <a class="nav-link active" href="#">홈</a>
+    <a class="nav-link" href="#">캐릭터</a>
+    <a class="nav-link" href="#">갤러리</a>
+    <a class="nav-link" href="#">글</a>
+    <a class="nav-link" href="#">TRPG</a>
+    <a class="nav-link" href="#">어바웃</a>
+  </div>
+  <div class="navbar-right">
+    <button class="icon-btn">☀</button>
+    <button class="icon-btn">⚙</button>
+  </div>
+</nav>
+
+<div class="main">
+<div class="dashboard">
+
+  <!-- 메인 비주얼 -->
+  <div class="widget w-main">
+    <div class="w-header"><span class="w-dot"></span> MAIN VISUAL ⠿</div>
+    <div class="w-body" style="display:flex;flex-direction:column;padding:0;">
+      <div style="flex:1;min-height:120px;background:linear-gradient(160deg,#1f1235 0%,#2a1045 50%,#1a0a2e 100%);display:flex;align-items:center;justify-content:center;position:relative;">
+        <div style="position:absolute;top:18%;left:22%;width:3px;height:3px;border-radius:50%;background:var(--accent);box-shadow:0 0 6px var(--accent);"></div>
+        <div style="position:absolute;top:35%;right:20%;width:2px;height:2px;border-radius:50%;background:var(--accent2);box-shadow:0 0 5px var(--accent2);"></div>
+        <div style="position:absolute;top:65%;left:30%;width:4px;height:4px;border-radius:50%;background:var(--accent);opacity:.5;box-shadow:0 0 8px var(--accent);"></div>
+        <div style="position:absolute;top:25%;right:38%;width:2px;height:2px;border-radius:50%;background:white;opacity:.4;"></div>
+        <div style="position:absolute;top:72%;right:18%;width:3px;height:3px;border-radius:50%;background:var(--accent2);box-shadow:0 0 5px var(--accent2);"></div>
+        <div style="text-align:center;opacity:.5;">
+          <div style="font-size:40px;">🎨</div>
+          <div style="font-size:10px;color:var(--txs);margin-top:4px;letter-spacing:.06em;">메인 일러스트</div>
+        </div>
+      </div>
+      <div style="padding:12px 14px;border-top:1px solid var(--border);">
+        <div style="font-size:17px;font-weight:700;color:var(--accent);">마리모</div>
+        <div style="font-size:11px;color:var(--txs);margin-top:2px;">2020 — present</div>
+        <div style="display:flex;gap:5px;margin-top:8px;">
+          <span class="tag" style="font-size:10px;">오리지널</span>
+          <span class="tag" style="font-size:10px;">판타지</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 달력 -->
+  <div class="widget w-cal">
+    <div class="w-header"><span class="w-dot"></span> CALENDAR ⠿</div>
+    <div class="w-body" style="padding:10px 12px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <button style="background:none;border:none;color:var(--txm);cursor:pointer;">‹</button>
+        <span style="font-size:11px;font-weight:600;color:var(--tx);">2026. 04</span>
+        <button style="background:none;border:none;color:var(--txm);cursor:pointer;">›</button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;">
+        <div style="font-size:9px;color:var(--accent2);padding:2px;">일</div>
+        <div style="font-size:9px;color:var(--txs);padding:2px;">월</div>
+        <div style="font-size:9px;color:var(--txs);padding:2px;">화</div>
+        <div style="font-size:9px;color:var(--txs);padding:2px;">수</div>
+        <div style="font-size:9px;color:var(--txs);padding:2px;">목</div>
+        <div style="font-size:9px;color:var(--txs);padding:2px;">금</div>
+        <div style="font-size:9px;color:var(--accent);padding:2px;">토</div>
+        <div style="font-size:10px;color:var(--txs);padding:3px;"></div><div style="font-size:10px;color:var(--txs);padding:3px;"></div><div style="font-size:10px;color:var(--txs);padding:3px;"></div>
+        <div style="font-size:10px;color:var(--txm);padding:3px;">1</div>
+        <div style="font-size:10px;color:var(--txm);padding:3px;">2</div>
+        <div style="font-size:10px;color:var(--txm);padding:3px;">3</div>
+        <div style="font-size:10px;color:var(--accent);padding:3px;">4</div>
+        <div style="font-size:10px;color:var(--txm);padding:3px;">5</div>
+        <div style="font-size:10px;color:var(--txm);padding:3px;">6</div>
+        <div style="font-size:10px;position:relative;padding:3px;">7<span style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:3px;height:3px;border-radius:50%;background:var(--accent2);display:block;"></span></div>
+        <div style="font-size:10px;color:var(--txm);padding:3px;">8</div>
+        <div style="font-size:10px;color:var(--txm);padding:3px;">9</div>
+        <div style="font-size:10px;color:var(--txm);padding:3px;">10</div>
+        <div style="font-size:10px;color:var(--accent);padding:3px;">11</div>
+        <div style="font-size:10px;color:var(--txm);padding:3px;">12</div>
+        <div style="font-size:10px;color:var(--txm);padding:3px;">13</div>
+        <div style="font-size:10px;border-radius:6px;background:var(--accent);color:var(--bg);padding:3px;font-weight:700;">14</div>
+        <div style="font-size:10px;color:var(--txm);padding:3px;">15</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 미니 갤러리 -->
+  <div class="widget w-mini">
+    <div class="w-header"><span class="w-dot" style="background:var(--accent2)"></span> GALLERY ⠿</div>
+    <div class="w-body" style="padding:10px 12px;display:flex;flex-direction:column;gap:5px;">
+      <div style="display:flex;gap:5px;">
+        <div style="flex:1;aspect-ratio:1;border-radius:7px;background:linear-gradient(135deg,#2a1545,#1a0d35);display:flex;align-items:center;justify-content:center;font-size:20px;">🌙</div>
+        <div style="flex:1;aspect-ratio:1;border-radius:7px;background:linear-gradient(135deg,#1a2535,#0d1a28);display:flex;align-items:center;justify-content:center;font-size:20px;">⚔</div>
+        <div style="flex:1;aspect-ratio:1;border-radius:7px;background:linear-gradient(135deg,#251525,#180d22);display:flex;align-items:center;justify-content:center;font-size:20px;">✨</div>
+      </div>
+      <div style="display:flex;gap:5px;">
+        <div style="flex:1;aspect-ratio:1;border-radius:7px;background:linear-gradient(135deg,#1f2030,#141520);display:flex;align-items:center;justify-content:center;font-size:20px;">🗡</div>
+        <div style="flex:1;aspect-ratio:1;border-radius:7px;background:var(--elevated);border:1px dashed var(--border);display:flex;align-items:center;justify-content:center;color:var(--txs);font-size:18px;">+</div>
+        <div style="flex:1;"></div>
+      </div>
+    </div>
+  </div>
+
+
+
+  <!-- 최근 작업물 -->
+  <div class="widget w-archive">
+    <div class="w-header"><span class="w-dot"></span> RECENT WORKS ⠿</div>
+    <div class="w-body" style="padding:10px 14px;display:flex;flex-direction:column;gap:1px;">
+      <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);">
+        <span style="font-size:13px;">🖼</span>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:12px;font-weight:500;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">별빛 아래의 두 사람</div>
+          <div style="font-size:10px;color:var(--txs);">별과 기사단</div>
+        </div>
+        <div style="font-size:10px;color:var(--txs);white-space:nowrap;">03-10</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);">
+        <span style="font-size:13px;">📝</span>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:12px;font-weight:500;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">별이 지는 날</div>
+          <div style="font-size:10px;color:var(--txs);">별과 기사단</div>
+        </div>
+        <div style="font-size:10px;color:var(--txs);white-space:nowrap;">03-05</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);">
+        <span style="font-size:13px;">🖼</span>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:12px;font-weight:500;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">리온 전신 컨셉</div>
+          <div style="font-size:10px;color:var(--txs);">별과 기사단</div>
+        </div>
+        <div style="font-size:10px;color:var(--txs);white-space:nowrap;">02-14</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);">
+        <span style="font-size:13px;">📝</span>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:12px;font-weight:500;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">중재자의 하루</div>
+          <div style="font-size:10px;color:var(--txs);">도시의 이면</div>
+        </div>
+        <div style="font-size:10px;color:var(--txs);white-space:nowrap;">02-20</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;padding:6px 0;">
+        <span style="font-size:13px;">🖼</span>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:12px;font-weight:500;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">도시의 이면 — 밤거리</div>
+          <div style="font-size:10px;color:var(--txs);">도시의 이면</div>
+        </div>
+        <div style="font-size:10px;color:var(--txs);white-space:nowrap;">01-20</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TRPG 위젯 -->
+  <div class="widget w-trpg">
+    <div class="w-header"><span class="w-dot" style="background:var(--accent2)"></span> TRPG LOG ⠿</div>
+    <div class="w-body" style="padding:10px 14px;display:flex;flex-direction:column;gap:1px;">
+      <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);">
+        <div style="width:22px;height:22px;border-radius:5px;background:color-mix(in srgb,var(--accent2) 15%,transparent);color:var(--accent2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;">1</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:12px;font-weight:500;color:var(--tx);">1화 — 오래된 저택</div>
+          <div style="font-size:10px;color:var(--txs);">심연의 계약</div>
+        </div>
+        <div style="font-size:10px;color:var(--txs);">01-15</div>
+      </div>
+      <div style="padding:16px 0;text-align:center;">
+        <div style="font-size:11px;color:var(--txs);">+ 새 세션 추가</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 캐릭터 카드 위젯 -->
+  <div class="widget w-chars">
+    <div class="w-header"><span class="w-dot"></span> CHARACTERS ⠿</div>
+    <div class="w-body" style="padding:10px 14px;display:flex;flex-direction:column;gap:10px;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div class="avatar" style="width:38px;height:38px;background:linear-gradient(135deg,#3d1f6e,#2a1050);color:var(--accent);font-size:14px;">리</div>
+        <div>
+          <div style="font-size:13px;font-weight:600;color:var(--tx);">리온 아스트레아</div>
+          <div style="font-size:10px;color:var(--txs);">별과 기사단</div>
+        </div>
+        <span class="tag" style="font-size:9px;margin-left:auto;">개인</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div class="avatar" style="width:38px;height:38px;background:linear-gradient(135deg,#3d1f45,#2a1035);color:var(--accent2);font-size:14px;">세</div>
+        <div>
+          <div style="font-size:13px;font-weight:600;color:var(--tx);">세라핀 루나</div>
+          <div style="font-size:10px;color:var(--txs);">별과 기사단</div>
+        </div>
+        <span class="tag" style="font-size:9px;margin-left:auto;">개인</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div class="avatar" style="width:38px;height:38px;background:linear-gradient(135deg,#1f3545,#0d2035);color:#60a5fa;font-size:14px;">하</div>
+        <div>
+          <div style="font-size:13px;font-weight:600;color:var(--tx);">하야시 켄</div>
+          <div style="font-size:10px;color:var(--txs);">도시의 이면</div>
+        </div>
+        <span class="tag" style="font-size:9px;margin-left:auto;">개인</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 프로필 위젯 -->
+  <div class="widget w-profile">
+    <div class="w-header"><span class="w-dot" style="background:var(--accent2)"></span> PROFILE ⠿</div>
+    <div class="w-body" style="padding:12px 14px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+        <div class="avatar" style="width:44px;height:44px;background:linear-gradient(135deg,var(--accent),#7c3aed);color:white;font-size:18px;font-weight:700;">마</div>
+        <div>
+          <div style="font-size:15px;font-weight:700;color:var(--accent);">마리모</div>
+          <div style="font-size:10px;color:var(--txs);">2020 — present</div>
+        </div>
+      </div>
+      <hr class="divider" style="margin-bottom:10px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+        <div style="padding:8px;border-radius:8px;background:var(--elevated);text-align:center;">
+          <div style="font-size:18px;font-weight:700;color:var(--accent);">3</div>
+          <div style="font-size:10px;color:var(--txs);margin-top:2px;">캐릭터</div>
+        </div>
+        <div style="padding:8px;border-radius:8px;background:var(--elevated);text-align:center;">
+          <div style="font-size:18px;font-weight:700;color:var(--accent2);">3</div>
+          <div style="font-size:10px;color:var(--txs);margin-top:2px;">그림</div>
+        </div>
+        <div style="padding:8px;border-radius:8px;background:var(--elevated);text-align:center;">
+          <div style="font-size:18px;font-weight:700;color:var(--accent);">2</div>
+          <div style="font-size:10px;color:var(--txs);margin-top:2px;">글</div>
+        </div>
+        <div style="padding:8px;border-radius:8px;background:var(--elevated);text-align:center;">
+          <div style="font-size:18px;font-weight:700;color:var(--accent2);">1</div>
+          <div style="font-size:10px;color:var(--txs);margin-top:2px;">TRPG</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /dashboard -->
+</div><!-- /main -->
+</body>
+</html>
