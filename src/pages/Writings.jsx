@@ -135,44 +135,63 @@ export default function Writings() {
   }
 
   return (
-    <div className="flex gap-0 animate-fade-in" style={{ minHeight: 'calc(100vh - 84px)' }}>
-      {/* 사이드바: 시리즈 목록 */}
-      <div className="w-56 shrink-0 border-r border-border overflow-y-auto" style={{ background: 'var(--surface)' }}>
-        <div className="flex items-center justify-between px-3 py-3 border-b border-border">
-          <span className="text-xs font-bold tracking-widest uppercase" style={{ color: 'var(--txm)' }}>시리즈</span>
-          <button
-            className="w-6 h-6 rounded flex items-center justify-center"
-            style={{ background: 'color-mix(in srgb, var(--accent) 12%, transparent)', color: 'var(--accent)' }}
-            onClick={openSeriesCreate}
-          ><Plus size={13} /></button>
-        </div>
-        {filteredSeries.length === 0 ? (
-          <div className="px-3 py-6 text-xs text-center" style={{ color: 'var(--txs)' }}>시리즈가 없습니다</div>
-        ) : (
-          filteredSeries.map(s => (
-            <button
-              key={s.id}
-              className="w-full text-left px-3 py-2.5 flex items-center gap-2.5 transition-colors"
-              style={{
-                background: selectedSeriesId === s.id ? 'color-mix(in srgb, var(--accent) 10%, transparent)' : 'transparent',
-                borderLeft: selectedSeriesId === s.id ? '2px solid var(--accent)' : '2px solid transparent',
-              }}
-              onClick={() => setSelectedSeriesId(s.id)}
-            >
-              <div className="w-8 h-8 rounded-md shrink-0 overflow-hidden" style={{ background: 'var(--elevated)', border: '1px solid var(--border)' }}>
-                <SeriesThumb imageId={s.thumbnailImageId} name={s.title} />
-              </div>
-              <div className="min-w-0">
-                <div className="text-xs font-semibold truncate" style={{ color: selectedSeriesId === s.id ? 'var(--accent)' : 'var(--tx)' }}>{s.title}</div>
-                <div className="text-xs truncate" style={{ color: 'var(--txs)' }}>{writings.filter(w => w.seriesId === s.id).length}화</div>
-              </div>
-            </button>
-          ))
-        )}
+    <div className="animate-fade-in" style={{ minHeight: 'calc(100vh - 56px)' }}>
+
+      {/* 모바일: 시리즈 드롭다운 */}
+      <div className="lg:hidden flex items-center gap-2 px-4 py-2 border-b border-border" style={{ background: 'var(--surface)' }}>
+        <select
+          className="input flex-1 text-sm"
+          value={selectedSeriesId || ''}
+          onChange={e => setSelectedSeriesId(e.target.value || null)}
+        >
+          <option value="">시리즈 선택</option>
+          {filteredSeries.map(s => (
+            <option key={s.id} value={s.id}>{s.title} ({writings.filter(w => w.seriesId === s.id).length}화)</option>
+          ))}
+        </select>
+        <button className="btn-accent flex items-center gap-1 text-xs shrink-0" onClick={openSeriesCreate}>
+          <Plus size={12} /> 새 시리즈
+        </button>
       </div>
 
-      {/* 메인: 시리즈 상세 + 글 목록 */}
-      <div className="flex-1 overflow-y-auto px-6 py-6">
+      <div className="flex" style={{ minHeight: 'calc(100vh - 100px)' }}>
+        {/* 데스크톱 사이드바 */}
+        <div className="hidden lg:block w-56 shrink-0 border-r border-border overflow-y-auto" style={{ background: 'var(--surface)' }}>
+          <div className="flex items-center justify-between px-3 py-3 border-b border-border">
+            <span className="text-xs font-bold tracking-widest uppercase" style={{ color: 'var(--txm)' }}>시리즈</span>
+            <button
+              className="w-6 h-6 rounded flex items-center justify-center"
+              style={{ background: 'color-mix(in srgb, var(--accent) 12%, transparent)', color: 'var(--accent)' }}
+              onClick={openSeriesCreate}
+            ><Plus size={13} /></button>
+          </div>
+          {filteredSeries.length === 0 ? (
+            <div className="px-3 py-6 text-xs text-center" style={{ color: 'var(--txs)' }}>시리즈가 없습니다</div>
+          ) : (
+            filteredSeries.map(s => (
+              <button
+                key={s.id}
+                className="w-full text-left px-3 py-2.5 flex items-center gap-2.5 transition-colors"
+                style={{
+                  background: selectedSeriesId === s.id ? 'color-mix(in srgb, var(--accent) 10%, transparent)' : 'transparent',
+                  borderLeft: selectedSeriesId === s.id ? '2px solid var(--accent)' : '2px solid transparent',
+                }}
+                onClick={() => setSelectedSeriesId(s.id)}
+              >
+                <div className="w-8 h-8 rounded-md shrink-0 overflow-hidden" style={{ background: 'var(--elevated)', border: '1px solid var(--border)' }}>
+                  <SeriesThumb imageId={s.thumbnailImageId} name={s.title} />
+                </div>
+                <div className="min-w-0">
+                  <div className="text-xs font-semibold truncate" style={{ color: selectedSeriesId === s.id ? 'var(--accent)' : 'var(--tx)' }}>{s.title}</div>
+                  <div className="text-xs truncate" style={{ color: 'var(--txs)' }}>{writings.filter(w => w.seriesId === s.id).length}화</div>
+                </div>
+              </button>
+            ))
+          )}
+        </div>
+
+        {/* 메인: 시리즈 상세 + 글 목록 */}
+        <div className="flex-1 overflow-y-auto px-4 lg:px-6 py-4 lg:py-6">
         {!currentSeries ? (
           <div className="flex flex-col items-center justify-center h-64 gap-3" style={{ color: 'var(--txs)' }}>
             <FileText size={32} />
@@ -238,7 +257,8 @@ export default function Writings() {
             )}
           </>
         )}
-      </div>
+        </div>
+      </div>{/* end flex */}
 
       {/* 시리즈 폼 모달 */}
       <Modal isOpen={seriesFormOpen} onClose={() => setSeriesFormOpen(false)} title={editSeries ? '시리즈 수정' : '새 시리즈'} size="sm">
