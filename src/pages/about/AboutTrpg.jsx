@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { Edit2, ChevronDown, ChevronUp, Check } from 'lucide-react'
+import { Edit2, ChevronDown, ChevronUp } from 'lucide-react'
 
-// ── 한눈에 보는 성향표 ──────────────────────────────────────
-const OVERVIEW_CATS = [
+// ── 플레이 성향 통합 카테고리 ────────────────────────────────
+const STYLE_CATS = [
   { cat: '세션 유형', items: [
     { key: 'ov_forum',    label: '포럼/포스트라인' },
     { key: 'ov_sound',    label: 'VTT/사운드' },
@@ -31,10 +31,6 @@ const OVERVIEW_CATS = [
     { key: 'ov_play_social',  label: '사교 중심' },
     { key: 'ov_play_mixed',   label: '균형잡힌 편' },
   ]},
-]
-
-// ── PL 성향 체크 ─────────────────────────────────────────────
-const PL_CATS = [
   { cat: '길이', items: [
     { key: 'pl_len_short',     label: '단문' },
     { key: 'pl_len_mid',       label: '중문' },
@@ -103,12 +99,12 @@ const LATENT_CATS = [
     { key: 'lt_h_punish',  label: '형벌' },
   ]},
   { cat: '폭력/학대', color: '#ef4444', items: [
-    { key: 'lt_v_phys',    label: '신체적 폭력' },
-    { key: 'lt_v_physpc',  label: '신체적 폭력 (PC)' },
-    { key: 'lt_v_ment',    label: '정신적 학대' },
-    { key: 'lt_v_mentpc',  label: '정신적 학대 (PC)' },
-    { key: 'lt_v_selfharm',label: '자해/자살' },
-    { key: 'lt_v_trauma',  label: '트라우마 묘사' },
+    { key: 'lt_v_phys',     label: '신체적 폭력' },
+    { key: 'lt_v_physpc',   label: '신체적 폭력 (PC)' },
+    { key: 'lt_v_ment',     label: '정신적 학대' },
+    { key: 'lt_v_mentpc',   label: '정신적 학대 (PC)' },
+    { key: 'lt_v_selfharm', label: '자해/자살' },
+    { key: 'lt_v_trauma',   label: '트라우마 묘사' },
   ]},
   { cat: '사회적', color: '#f59e0b', items: [
     { key: 'lt_s_disc',     label: '차별/혐오' },
@@ -138,34 +134,36 @@ const RATING_OPTS = [
   { key: 'no',   label: '불가',  bg: '#f87171',        text: 'white' },
 ]
 
-// ── 공통 체크리스트 컬럼 ─────────────────────────────────────
-function CheckList({ cats, checked, onToggle, editMode, accentColor = 'var(--accent)' }) {
+// ── 칩 토글 리스트 (항상 표시, 선택 여부만 색상으로 구분) ─────
+function ChipToggleGrid({ cats, checked, onToggle, editMode }) {
   return (
-    <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(118px, 1fr))' }}>
-      {cats.map(group => {
-        const visible = editMode ? group.items : group.items.filter(i => checked.includes(i.key))
-        if (!editMode && visible.length === 0) return null
-        return (
-          <div key={group.cat}>
-            <div className="text-xs font-medium mb-1.5"
-              style={{ color: 'var(--txm)', borderLeft: `2px solid ${accentColor}`, paddingLeft: 6 }}>
-              {group.cat}
-            </div>
-            <div className="space-y-1">
-              {visible.map(item => (
-                <label key={item.key} className="flex items-center gap-1.5 cursor-pointer">
-                  {editMode
-                    ? <input type="checkbox" checked={checked.includes(item.key)} onChange={() => onToggle(item.key)}
-                        style={{ accentColor }} />
-                    : <Check size={10} style={{ color: accentColor, flexShrink: 0 }} />
-                  }
-                  <span className="text-xs" style={{ color: 'var(--tx)' }}>{item.label}</span>
-                </label>
-              ))}
-            </div>
+    <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))' }}>
+      {cats.map(group => (
+        <div key={group.cat}>
+          <div className="text-xs font-medium mb-1.5"
+            style={{ color: 'var(--txm)', borderLeft: '2px solid var(--accent)', paddingLeft: 6 }}>
+            {group.cat}
           </div>
-        )
-      })}
+          <div className="flex flex-wrap gap-1">
+            {group.items.map(item => {
+              const active = checked.includes(item.key)
+              return (
+                <button
+                  key={item.key}
+                  onClick={() => editMode && onToggle(item.key)}
+                  className="px-2 py-0.5 rounded-full text-xs transition-all"
+                  style={active
+                    ? { background: 'var(--accent)', color: 'var(--bg)', cursor: editMode ? 'pointer' : 'default' }
+                    : { border: '1px solid var(--border)', color: 'var(--txm)', cursor: editMode ? 'pointer' : 'default' }
+                  }
+                >
+                  {item.label}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      ))}
     </div>
   )
 }
@@ -238,14 +236,17 @@ export default function AboutTrpg({ otaku, updateOtaku }) {
   const [editMode, setEditMode] = useState(false)
   const [collapsed, setCollapsed] = useState(true)
 
-  const ovStyle      = otaku.ovStyle || []
-  const plStyle      = otaku.plStyle || []
+  // 이전 데이터(plStyle/ovStyle)와 통합
+  const trpgStyle = otaku.trpgStyle || [
+    ...(otaku.ovStyle || []),
+    ...(otaku.plStyle || []),
+  ]
   const latentRatings = otaku.latentRatings || {}
-  const hasAny = ovStyle.length > 0 || plStyle.length > 0 ||
-    Object.keys(latentRatings).length > 0 || otaku.trpgTriggers
+  const hasAny = trpgStyle.length > 0 || Object.keys(latentRatings).length > 0 || otaku.trpgTriggers
 
-  const toggleOv = k => updateOtaku({ ovStyle: ovStyle.includes(k) ? ovStyle.filter(x => x !== k) : [...ovStyle, k] })
-  const togglePl = k => updateOtaku({ plStyle: plStyle.includes(k) ? plStyle.filter(x => x !== k) : [...plStyle, k] })
+  const toggle = k => updateOtaku({
+    trpgStyle: trpgStyle.includes(k) ? trpgStyle.filter(x => x !== k) : [...trpgStyle, k]
+  })
   const rateLatent = (k, v) => updateOtaku({
     latentRatings: v
       ? { ...latentRatings, [k]: v }
@@ -277,25 +278,13 @@ export default function AboutTrpg({ otaku, updateOtaku }) {
       {(!collapsed || editMode) && (
         <div className="space-y-4">
 
-          {/* 한눈에 보는 성향 */}
+          {/* 플레이 성향 통합 */}
           <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--border)' }}>
             <div className="px-3 py-2 text-xs font-bold text-center"
               style={{ background: 'var(--elevated)', color: 'var(--tx)', borderBottom: '1px solid var(--border)' }}>
-              한눈에 보는 성향
+              플레이 성향
             </div>
-            <div className="p-3" style={{ background: 'var(--surface)' }}>
-              <CheckList cats={OVERVIEW_CATS} checked={ovStyle} onToggle={toggleOv}
-                editMode={editMode} accentColor="var(--accent2)" />
-            </div>
-          </div>
-
-          {/* PL 성향 체크 */}
-          <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--border)' }}>
-            <div className="px-3 py-2 text-xs font-bold text-center"
-              style={{ background: 'var(--elevated)', color: 'var(--tx)', borderBottom: '1px solid var(--border)' }}>
-              PL 성향
-            </div>
-            <div className="p-3 space-y-3" style={{ background: 'var(--surface)' }}>
+            <div className="p-4 space-y-3" style={{ background: 'var(--surface)' }}>
               {(otaku.plStyleNote || editMode) && (
                 editMode
                   ? <textarea className="textarea text-xs" rows={2} placeholder="본인 기준 상세 기술 (선택)"
@@ -303,7 +292,7 @@ export default function AboutTrpg({ otaku, updateOtaku }) {
                   : <p className="text-xs px-3 py-2 rounded-lg"
                       style={{ color: 'var(--txm)', background: 'var(--elevated)' }}>{otaku.plStyleNote}</p>
               )}
-              <CheckList cats={PL_CATS} checked={plStyle} onToggle={togglePl} editMode={editMode} />
+              <ChipToggleGrid cats={STYLE_CATS} checked={trpgStyle} onToggle={toggle} editMode={editMode} />
             </div>
           </div>
 
