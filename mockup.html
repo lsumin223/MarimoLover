@@ -573,8 +573,249 @@ body {
 </div>
 
 <!-- ===== 어바웃 페이지 ===== -->
-<div id="page-about" class="page" style="display:none;">
-  <div style="max-width:720px;margin:0 auto;padding:24px 16px;display:flex;flex-direction:column;gap:40px;">
+<div id="page-about" class="page" style="display:none;padding:0;">
+
+  <!-- 배너 -->
+  <div style="position:relative;width:100%;height:180px;background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 30%,var(--bg)),var(--bg));overflow:hidden;">
+    <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:.15;font-size:80px;">✦</div>
+  </div>
+
+  <!-- 프로필 헤더 -->
+  <div style="max-width:960px;margin:0 auto;padding:0 20px;">
+    <div style="display:flex;align-items:flex-end;gap:16px;margin-top:-40px;position:relative;">
+      <!-- 원형 프사 -->
+      <div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#7c3aed);color:white;font-size:28px;font-weight:700;display:flex;align-items:center;justify-content:center;border:4px solid var(--bg);flex-shrink:0;">마</div>
+      <!-- 말풍선 -->
+      <div style="position:relative;background:var(--accent);color:var(--bg);padding:8px 14px;border-radius:12px;font-size:12px;margin-bottom:8px;max-width:220px;">
+        판타지·현대물 창작자입니다 ✦
+        <div style="position:absolute;left:-8px;bottom:10px;width:0;height:0;border-top:5px solid transparent;border-bottom:5px solid transparent;border-right:8px solid var(--accent);"></div>
+      </div>
+      <button style="margin-left:auto;margin-bottom:8px;padding:4px 10px;border-radius:6px;background:transparent;color:var(--txm);font-size:11px;border:1px solid var(--border);cursor:pointer;">✏ 편집</button>
+    </div>
+    <!-- 닉네임 -->
+    <div style="padding:12px 0 16px;border-bottom:1px solid var(--border);">
+      <span style="font-size:20px;font-weight:700;color:var(--tx);">마리모</span>
+      <span style="font-size:13px;color:var(--txm);margin-left:8px;">/ MarimoLover</span>
+      <div style="font-size:11px;color:var(--txs);margin-top:2px;">@marimolover</div>
+    </div>
+  </div>
+
+  <div style="max-width:960px;margin:0 auto;padding:32px 20px;display:flex;flex-direction:column;gap:40px;">
+
+    <!-- 오타쿠 설명서 -->
+    <section>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+        <div style="width:4px;height:18px;border-radius:2px;background:var(--accent2);"></div>
+        <span style="font-size:14px;font-weight:700;color:var(--tx);">오타쿠 설명서</span>
+        <button style="margin-left:auto;padding:4px 10px;border-radius:6px;background:transparent;color:var(--txm);font-size:11px;border:1px solid var(--border);cursor:pointer;">✏ 편집</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+
+        <!-- 프로필 (left) -->
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:14px;">
+          <div style="font-size:13px;font-weight:700;color:var(--tx);padding-bottom:10px;border-bottom:1px solid var(--border);">프로필</div>
+
+          <div style="display:flex;gap:10px;align-items:flex-start;">
+            <span style="font-size:12px;font-weight:700;color:var(--tx);min-width:64px;white-space:nowrap;padding-top:2px;">연령 |</span>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              <span style="padding:3px 12px;border-radius:999px;font-size:11px;font-weight:500;background:var(--accent);color:var(--bg);">성인</span>
+              <span style="padding:3px 12px;border-radius:999px;font-size:11px;font-weight:500;border:1px solid var(--border);color:var(--txm);">미성년자</span>
+              <span style="padding:3px 12px;border-radius:999px;font-size:11px;font-weight:500;border:1px solid var(--border);color:var(--txm);">비공개</span>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:10px;align-items:flex-start;">
+            <span style="font-size:12px;font-weight:700;color:var(--tx);min-width:64px;white-space:nowrap;padding-top:2px;">전공 |</span>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              <span style="padding:3px 12px;border-radius:999px;font-size:11px;font-weight:500;background:var(--accent);color:var(--bg);">글</span>
+              <span style="padding:3px 12px;border-radius:999px;font-size:11px;font-weight:500;background:var(--accent);color:var(--bg);">그림</span>
+              <span style="padding:3px 12px;border-radius:999px;font-size:11px;font-weight:500;border:1px solid var(--border);color:var(--txm);">디자인</span>
+              <span style="padding:3px 12px;border-radius:999px;font-size:11px;font-weight:500;border:1px solid var(--border);color:var(--txm);">소비</span>
+              <span style="padding:3px 12px;border-radius:999px;font-size:11px;font-weight:500;border:1px solid var(--border);color:var(--txm);">기타</span>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:10px;align-items:flex-start;">
+            <span style="font-size:12px;font-weight:700;color:var(--tx);min-width:64px;white-space:nowrap;padding-top:2px;">FUB FREE |</span>
+            <div style="display:flex;gap:6px;">
+              <span style="padding:3px 12px;border-radius:999px;font-size:11px;font-weight:500;background:var(--accent);color:var(--bg);">O</span>
+              <span style="padding:3px 12px;border-radius:999px;font-size:11px;font-weight:500;border:1px solid var(--border);color:var(--txm);">X</span>
+            </div>
+          </div>
+          <div style="font-size:11px;color:var(--txm);background:var(--elevated);padding:8px 12px;border-radius:8px;line-height:1.6;">팔로우/언팔로우 자유입니다.</div>
+
+          <div style="display:flex;gap:10px;align-items:flex-start;">
+            <span style="font-size:12px;font-weight:700;color:var(--tx);min-width:64px;white-space:nowrap;padding-top:2px;">계정 성향 |</span>
+            <div style="display:flex;gap:5px;flex-wrap:wrap;">
+              <span style="padding:3px 10px;border-radius:999px;font-size:11px;background:var(--accent);color:var(--bg);">연성</span>
+              <span style="padding:3px 10px;border-radius:999px;font-size:11px;background:var(--accent);color:var(--bg);">셀</span>
+              <span style="padding:3px 10px;border-radius:999px;font-size:11px;border:1px solid var(--border);color:var(--txm);">RT</span>
+              <span style="padding:3px 10px;border-radius:999px;font-size:11px;border:1px solid var(--border);color:var(--txm);">마음</span>
+              <span style="padding:3px 10px;border-radius:999px;font-size:11px;border:1px solid var(--border);color:var(--txm);">일상</span>
+              <span style="padding:3px 10px;border-radius:999px;font-size:11px;border:1px solid var(--border);color:var(--txm);">구독</span>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:10px;align-items:flex-start;">
+            <span style="font-size:12px;font-weight:700;color:var(--tx);min-width:64px;white-space:nowrap;padding-top:2px;">지뢰 |</span>
+            <p style="font-size:12px;color:var(--txm);line-height:1.6;">NTR, 과도한 폭력 묘사, 캐릭터 능욕</p>
+          </div>
+
+          <div style="display:flex;gap:8px;padding-top:8px;border-top:1px solid var(--border);">
+            <a href="#" style="padding:5px 12px;border-radius:8px;background:var(--elevated);color:var(--tx);font-size:11px;text-decoration:none;border:1px solid var(--border);">Twitter/X ↗</a>
+            <a href="#" style="padding:5px 12px;border-radius:8px;background:var(--elevated);color:var(--tx);font-size:11px;text-decoration:none;border:1px solid var(--border);">Pixiv ↗</a>
+          </div>
+        </div>
+
+        <!-- 장르 (right) -->
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:14px;">
+          <div style="font-size:13px;font-weight:700;color:var(--tx);padding-bottom:10px;border-bottom:1px solid var(--border);">장르</div>
+
+          <!-- 장르 카드 3열 -->
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+            <div style="border-radius:10px;overflow:hidden;border:1px solid var(--border);background:var(--elevated);">
+              <div style="padding-top:140%;background:var(--border);position:relative;">
+                <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--txs);font-size:10px;">이미지</div>
+              </div>
+              <div style="padding:6px 8px;">
+                <div style="font-size:11px;font-weight:700;color:var(--tx);">별과 기사단</div>
+                <div style="font-size:10px;color:var(--txs);">판타지</div>
+              </div>
+            </div>
+            <div style="border-radius:10px;overflow:hidden;border:1px solid var(--border);background:var(--elevated);">
+              <div style="padding-top:140%;background:var(--border);position:relative;">
+                <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--txs);font-size:10px;">이미지</div>
+              </div>
+              <div style="padding:6px 8px;">
+                <div style="font-size:11px;font-weight:700;color:var(--tx);">도시의 이면</div>
+                <div style="font-size:10px;color:var(--txs);">현대물</div>
+              </div>
+            </div>
+            <div style="border-radius:10px;border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;min-height:120px;color:var(--txs);font-size:11px;cursor:pointer;">+ 추가</div>
+          </div>
+
+          <div style="display:flex;gap:10px;align-items:flex-start;">
+            <span style="font-size:12px;font-weight:700;color:var(--tx);min-width:64px;white-space:nowrap;padding-top:2px;">장르 성향 |</span>
+            <div style="display:flex;gap:6px;">
+              <span style="padding:3px 12px;border-radius:999px;font-size:11px;background:var(--accent);color:var(--bg);">1차</span>
+              <span style="padding:3px 12px;border-radius:999px;font-size:11px;border:1px solid var(--border);color:var(--txm);">2차</span>
+              <span style="padding:3px 12px;border-radius:999px;font-size:11px;border:1px solid var(--border);color:var(--txm);">드림</span>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:10px;align-items:flex-start;">
+            <span style="font-size:12px;font-weight:700;color:var(--tx);min-width:64px;white-space:nowrap;padding-top:2px;">불호 소재 |</span>
+            <p style="font-size:12px;color:var(--txm);line-height:1.6;">2차 창작은 비상업 범위 내에서 자유롭게 허용합니다.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TRPG 성향표 -->
+    <section>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+        <div style="width:4px;height:18px;border-radius:2px;background:var(--accent);"></div>
+        <span style="font-size:14px;font-weight:700;color:var(--tx);">TRPG 성향표</span>
+        <button style="margin-left:auto;padding:4px 10px;border-radius:6px;background:transparent;color:var(--txm);font-size:11px;border:1px solid var(--border);cursor:pointer;">✏ 편집</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <!-- GM 성향 -->
+        <div style="border:1px solid var(--border);border-radius:12px;overflow:hidden;">
+          <div style="background:var(--elevated);padding:8px;text-align:center;font-size:12px;font-weight:700;color:var(--tx);border-bottom:1px solid var(--border);">GM 성향</div>
+          <div style="background:var(--surface);padding:14px;display:flex;flex-direction:column;gap:12px;">
+            <div>
+              <div style="font-size:11px;font-weight:600;color:var(--txm);border-left:2px solid var(--accent);padding-left:6px;margin-bottom:6px;">묘사</div>
+              <div style="display:flex;flex-direction:column;gap:4px;">
+                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:var(--tx);">
+                  <span style="color:var(--accent);">✓</span> 세세하게 묘사
+                </label>
+                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:var(--tx);">
+                  <span style="color:var(--accent);">✓</span> 메타/개그 판정 가능
+                </label>
+              </div>
+            </div>
+            <div>
+              <div style="font-size:11px;font-weight:600;color:var(--txm);border-left:2px solid var(--accent);padding-left:6px;margin-bottom:6px;">진행</div>
+              <div style="display:flex;flex-direction:column;gap:4px;">
+                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:var(--tx);">
+                  <span style="color:var(--accent);">✓</span> 4시간 이내
+                </label>
+                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:var(--tx);">
+                  <span style="color:var(--accent);">✓</span> 쉬는 시간 필요
+                </label>
+              </div>
+            </div>
+            <div>
+              <div style="font-size:11px;font-weight:600;color:var(--txm);border-left:2px solid var(--accent);padding-left:6px;margin-bottom:6px;">PL참여</div>
+              <div style="display:flex;flex-direction:column;gap:4px;">
+                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:var(--tx);">
+                  <span style="color:var(--accent);">✓</span> 입문 PL 가능
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- PL 성향 -->
+        <div style="border:1px solid var(--border);border-radius:12px;overflow:hidden;">
+          <div style="background:var(--elevated);padding:8px;text-align:center;font-size:12px;font-weight:700;color:var(--tx);border-bottom:1px solid var(--border);">PL 성향</div>
+          <div style="background:var(--surface);padding:14px;display:flex;flex-direction:column;gap:12px;">
+            <div>
+              <div style="font-size:11px;font-weight:600;color:var(--txm);border-left:2px solid var(--accent);padding-left:6px;margin-bottom:6px;">길이</div>
+              <div style="display:flex;flex-direction:column;gap:4px;">
+                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:var(--tx);">
+                  <span style="color:var(--accent);">✓</span> 중문
+                </label>
+                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:var(--tx);">
+                  <span style="color:var(--accent);">✓</span> 장문
+                </label>
+              </div>
+            </div>
+            <div>
+              <div style="font-size:11px;font-weight:600;color:var(--txm);border-left:2px solid var(--accent);padding-left:6px;margin-bottom:6px;">관계</div>
+              <div style="display:flex;flex-direction:column;gap:4px;">
+                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:var(--tx);">
+                  <span style="color:var(--accent);">✓</span> PC-PC 연애
+                </label>
+                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:var(--tx);">
+                  <span style="color:var(--accent);">✓</span> 지속적 관계
+                </label>
+              </div>
+            </div>
+            <div>
+              <div style="font-size:11px;font-weight:600;color:var(--txm);border-left:2px solid var(--accent);padding-left:6px;margin-bottom:6px;">자리</div>
+              <div style="display:flex;flex-direction:column;gap:4px;">
+                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:var(--tx);">
+                  <span style="color:var(--accent);">✓</span> 상관 없음
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 커뮤 및 캐릭터 정리 -->
+    <section>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+        <div style="width:4px;height:18px;border-radius:2px;background:var(--accent2);"></div>
+        <span style="font-size:14px;font-weight:700;color:var(--tx);">커뮤 및 캐릭터 정리</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:14px;">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+          <div style="width:48px;height:48px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#7c3aed);display:flex;align-items:center;justify-content:center;color:white;font-size:18px;font-weight:700;">리</div>
+          <div style="text-align:center;"><div style="font-size:11px;font-weight:500;color:var(--tx);">리온</div><div style="font-size:10px;color:var(--txs);">별과 기사단</div></div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+          <div style="width:48px;height:48px;border-radius:10px;background:linear-gradient(135deg,var(--accent2),#e879f9);display:flex;align-items:center;justify-content:center;color:white;font-size:18px;font-weight:700;">세</div>
+          <div style="text-align:center;"><div style="font-size:11px;font-weight:500;color:var(--tx);">세라핀</div><div style="font-size:10px;color:var(--txs);">별과 기사단</div></div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+          <div style="width:48px;height:48px;border-radius:10px;background:var(--elevated);display:flex;align-items:center;justify-content:center;color:var(--accent);font-size:18px;font-weight:700;border:1px solid var(--border);">카</div>
+          <div style="text-align:center;"><div style="font-size:11px;font-weight:500;color:var(--tx);">카엘</div><div style="font-size:10px;color:var(--txs);">도시의 이면</div></div>
+        </div>
+      </div>
+    </section>
+
     <!-- 공지사항 -->
     <section>
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
@@ -594,48 +835,7 @@ body {
         </div>
       </div>
     </section>
-    <!-- 오타쿠 설명서 -->
-    <section>
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
-        <div style="width:4px;height:18px;border-radius:2px;background:var(--accent2);"></div>
-        <span style="font-size:14px;font-weight:700;color:var(--tx);">오타쿠 설명서</span>
-        <button style="margin-left:auto;padding:4px 10px;border-radius:6px;background:transparent;color:var(--txm);font-size:11px;border:1px solid var(--border);cursor:pointer;">✏ 편집</button>
-      </div>
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:16px;">
-        <div style="display:flex;align-items:center;gap:14px;">
-          <div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#7c3aed);color:white;font-size:22px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid var(--border);flex-shrink:0;">마</div>
-          <div>
-            <div style="font-size:16px;font-weight:700;color:var(--accent);">마리모</div>
-            <div style="font-size:12px;color:var(--txm);margin-top:3px;">판타지와 현대물을 좋아하는 창작자입니다. 주로 오리지널 캐릭터를 씁니다.</div>
-          </div>
-        </div>
-        <hr style="border:none;border-top:1px solid var(--border);">
-        <div>
-          <div style="font-size:10px;font-weight:600;letter-spacing:.06em;color:var(--txm);margin-bottom:8px;">좋아하는 것</div>
-          <div style="display:flex;flex-wrap:wrap;gap:6px;">
-            <span style="padding:3px 10px;border-radius:4px;font-size:11px;background:color-mix(in srgb,var(--accent) 12%,transparent);color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 25%,transparent);">이세계 판타지</span>
-            <span style="padding:3px 10px;border-radius:4px;font-size:11px;background:color-mix(in srgb,var(--accent) 12%,transparent);color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 25%,transparent);">버디물</span>
-            <span style="padding:3px 10px;border-radius:4px;font-size:11px;background:color-mix(in srgb,var(--accent) 12%,transparent);color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 25%,transparent);">감정 억압하는 캐릭터</span>
-            <span style="padding:3px 10px;border-radius:4px;font-size:11px;background:color-mix(in srgb,var(--accent) 12%,transparent);color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 25%,transparent);">나중에 무너지는 순간</span>
-          </div>
-        </div>
-        <div>
-          <div style="font-size:10px;font-weight:600;letter-spacing:.06em;color:var(--txm);margin-bottom:8px;">지뢰</div>
-          <div style="display:flex;flex-wrap:wrap;gap:6px;">
-            <span style="padding:3px 10px;border-radius:4px;font-size:11px;background:color-mix(in srgb,var(--accent2) 12%,transparent);color:var(--accent2);border:1px solid color-mix(in srgb,var(--accent2) 25%,transparent);">NTR</span>
-            <span style="padding:3px 10px;border-radius:4px;font-size:11px;background:color-mix(in srgb,var(--accent2) 12%,transparent);color:var(--accent2);border:1px solid color-mix(in srgb,var(--accent2) 25%,transparent);">과도한 폭력 묘사</span>
-          </div>
-        </div>
-        <div>
-          <div style="font-size:10px;font-weight:600;letter-spacing:.06em;color:var(--txm);margin-bottom:4px;">창작 주의사항</div>
-          <p style="font-size:12px;color:var(--txm);line-height:1.6;">2차 창작은 비상업 범위 내에서 자유롭게 허용합니다. 단, R18은 사전 문의 부탁드립니다.</p>
-        </div>
-        <div style="display:flex;gap:8px;padding-top:4px;border-top:1px solid var(--border);">
-          <a href="#" style="padding:6px 14px;border-radius:8px;background:var(--elevated);color:var(--tx);font-size:11px;text-decoration:none;border:1px solid var(--border);">Twitter/X ↗</a>
-          <a href="#" style="padding:6px 14px;border-radius:8px;background:var(--elevated);color:var(--tx);font-size:11px;text-decoration:none;border:1px solid var(--border);">Pixiv ↗</a>
-        </div>
-      </div>
-    </section>
+
     <!-- 방명록 -->
     <section>
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
@@ -651,6 +851,7 @@ body {
       </div>
       <div style="text-align:center;font-size:12px;color:var(--txs);padding:20px;">아직 방명록이 없습니다</div>
     </section>
+
   </div>
 </div>
 
