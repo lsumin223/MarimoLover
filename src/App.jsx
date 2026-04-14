@@ -1,4 +1,4 @@
-import { HashRouter, Routes, Route, useLocation } from 'react-router-dom'
+import { HashRouter, Routes, Route } from 'react-router-dom'
 import { useEffect } from 'react'
 import useSettingsStore from './store/useSettingsStore'
 import Navbar from './components/layout/Navbar'
@@ -17,25 +17,15 @@ import About from './pages/About'
 import Settings from './pages/Settings'
 import Search from './pages/Search'
 
-// WorkSelector가 표시되는 경로
-const WORK_SELECTOR_PATHS = ['/characters', '/gallery', '/writings']
-
 // HashRouter 내부에서 동작하는 레이아웃 컴포넌트
 function Layout() {
-  const location = useLocation()
-  // WorkSelector가 보이는 페이지 여부에 따라 padding-top 조정
-  const hasWorkSelector = WORK_SELECTOR_PATHS.some(
-    (p) => location.pathname === p || location.pathname.startsWith(p + '/')
-  )
-
   return (
     <>
       <Navbar />
-      {/* Navbar (48px) + WorkSelector (34px) 높이만큼 상단 여백 */}
       <main
         className="min-h-screen"
         style={{
-          paddingTop: hasWorkSelector ? '84px' : '48px',
+          paddingTop: '48px',
           background: 'var(--bg)',
         }}
       >

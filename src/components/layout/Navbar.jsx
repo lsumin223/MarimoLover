@@ -3,10 +3,9 @@
 // 왼쪽: 사이트 닉네임, 중앙: 페이지 링크, 오른쪽: 다크모드 토글 + 설정
 // 캐릭터/갤러리/글/TRPG 페이지에서는 두 번째 줄에 WorkSelector 표시
 
-import { NavLink, useLocation, Link } from 'react-router-dom'
+import { NavLink, Link } from 'react-router-dom'
 import { Sun, Moon, Settings, Search } from 'lucide-react'
 import useSettingsStore from '../../store/useSettingsStore'
-import WorkSelector from './WorkSelector'
 
 // 네비게이션 링크 목록
 const NAV_LINKS = [
@@ -18,17 +17,8 @@ const NAV_LINKS = [
   { to: '/about', label: '어바웃' },
 ]
 
-// WorkSelector를 표시할 경로 패턴
-const WORK_SELECTOR_PATHS = ['/characters']
-
 export default function Navbar() {
   const { nickname, darkMode, toggleDarkMode } = useSettingsStore()
-  const location = useLocation()
-
-  // 현재 경로가 WorkSelector를 보여줄 페이지인지 확인
-  const showWorkSelector = WORK_SELECTOR_PATHS.some(
-    (path) => location.pathname === path || location.pathname.startsWith(path + '/')
-  )
 
   return (
     <header
@@ -137,8 +127,6 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* 두 번째 행: WorkSelector (해당 페이지에서만 표시) */}
-      {showWorkSelector && <WorkSelector />}
     </header>
   )
 }

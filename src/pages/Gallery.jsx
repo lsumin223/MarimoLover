@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Plus, Edit2, Trash2, X, Image as ImageIcon, Lock, ChevronLeft, ChevronRight, Eye, EyeOff } from 'lucide-react'
 import useGalleryStore from '../store/useGalleryStore'
+import useCharacterStore from '../store/useCharacterStore'
 import Modal from '../components/common/Modal'
 import ConfirmDialog from '../components/common/ConfirmDialog'
 import TagInput from '../components/common/TagInput'
@@ -153,6 +154,8 @@ const emptyForm = { title: '', imageIds: [], date: new Date().toISOString().slic
 
 export default function Gallery() {
   const { posts, addPost, updatePost, deletePost } = useGalleryStore()
+  const { characters } = useCharacterStore()
+  const individualChars = characters.filter(c => c.type === 'individual' && c.name)
 
   // 폼 상태
   const [formOpen, setFormOpen] = useState(false)
@@ -307,8 +310,32 @@ export default function Gallery() {
             <label className="block text-xs font-medium mb-1" style={{ color: 'var(--txm)' }}>날짜</label>
             <input className="input" type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} />
           </div>
+          {/* 캐릭터 태그 선택 */}
+          {individualChars.length > 0 && (
+            <div>
+              <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--txm)' }}>캐릭터 태그</label>
+              <div className="flex flex-wrap gap-1">
+                {individualChars.map(c => {
+                  const active = (form.tags || []).some(t => t.toLowerCase() === c.name.toLowerCase())
+                  return (
+                    <button key={c.id}
+                      className="px-2 py-0.5 rounded-full text-xs transition-all"
+                      style={active
+                        ? { background: 'var(--accent)', color: 'var(--bg)' }
+                        : { border: '1px solid var(--border)', color: 'var(--txm)' }}
+                      onClick={() => {
+                        const name = c.name
+                        if (active) setForm(f => ({ ...f, tags: (f.tags||[]).filter(t => t.toLowerCase() !== name.toLowerCase()) }))
+                        else setForm(f => ({ ...f, tags: [...(f.tags||[]), name] }))
+                      }}
+                    >{c.name}</button>
+                  )
+                })}
+              </div>
+            </div>
+          )}
           <div>
-            <label className="block text-xs font-medium mb-1" style={{ color: 'var(--txm)' }}>태그 (캐릭터명 등)</label>
+            <label className="block text-xs font-medium mb-1" style={{ color: 'var(--txm)' }}>태그 (자유 입력)</label>
             <TagInput tags={form.tags || []} onChange={v => setForm(f => ({ ...f, tags: v }))} placeholder="태그 입력 후 Enter" />
           </div>
 

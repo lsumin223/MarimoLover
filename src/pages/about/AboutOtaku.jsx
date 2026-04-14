@@ -10,8 +10,9 @@ const FUB_OPTS = ['O', 'X']
 const TENDENCY_OPTS = ['RT', '마음', '일상', '구독', '셀', '연성', '일상트', '욕트', '셋트', '우울트', '담라대화', '잊이']
 const GENRE_TENDENCY_OPTS = ['1차', '2차', '드림']
 
-function ChipSelect({ options, value, onChange, multi = false }) {
+function ChipSelect({ options, value, onChange, multi = false, readOnly = false }) {
   const toggle = (opt) => {
+    if (readOnly) return
     if (multi) onChange(value.includes(opt) ? value.filter(v => v !== opt) : [...value, opt])
     else onChange(value === opt ? '' : opt)
   }
@@ -21,7 +22,12 @@ function ChipSelect({ options, value, onChange, multi = false }) {
       {options.map(opt => (
         <button key={opt} onClick={() => toggle(opt)}
           className="px-2.5 py-1 rounded-full text-xs font-medium transition-all"
-          style={isActive(opt) ? { background: 'var(--accent)', color: 'var(--bg)' } : { border: '1px solid var(--border)', color: 'var(--txm)' }}>
+          style={{
+            ...(isActive(opt)
+              ? { background: 'var(--accent)', color: 'var(--bg)' }
+              : { border: '1px solid var(--border)', color: 'var(--txm)' }),
+            cursor: readOnly ? 'default' : 'pointer',
+          }}>
           {opt}
         </button>
       ))}
@@ -113,26 +119,17 @@ export default function AboutOtaku({ otaku, updateOtaku, profile }) {
         <div className="space-y-4 p-5 rounded-xl" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
           <h3 className="text-sm font-bold pb-3 mb-1" style={{ color: 'var(--tx)', borderBottom: '1px solid var(--border)' }}>프로필</h3>
 
-          {(otaku.age || editMode) && (
-            <LabelRow label="연령">
-              {editMode ? <ChipSelect options={AGE_OPTS} value={otaku.age || ''} onChange={v => updateOtaku({ age: v })} />
-                : <span className="text-sm" style={{ color: 'var(--tx)' }}>{otaku.age}</span>}
-            </LabelRow>
-          )}
+          <LabelRow label="연령">
+            <ChipSelect options={AGE_OPTS} value={otaku.age || ''} onChange={v => updateOtaku({ age: v })} readOnly={!editMode} />
+          </LabelRow>
 
-          {(otaku.majors?.length > 0 || editMode) && (
-            <LabelRow label="전공">
-              {editMode ? <ChipSelect options={MAJOR_OPTS} value={otaku.majors || []} onChange={v => updateOtaku({ majors: v })} multi />
-                : <div className="flex flex-wrap gap-1">{(otaku.majors || []).map(m => <span key={m} className="tag">{m}</span>)}</div>}
-            </LabelRow>
-          )}
+          <LabelRow label="전공">
+            <ChipSelect options={MAJOR_OPTS} value={otaku.majors || []} onChange={v => updateOtaku({ majors: v })} multi readOnly={!editMode} />
+          </LabelRow>
 
-          {(otaku.fubFree || editMode) && (
-            <LabelRow label="FUB FREE">
-              {editMode ? <ChipSelect options={FUB_OPTS} value={otaku.fubFree || ''} onChange={v => updateOtaku({ fubFree: v })} />
-                : <span className="text-sm" style={{ color: 'var(--tx)' }}>{otaku.fubFree}</span>}
-            </LabelRow>
-          )}
+          <LabelRow label="FUB FREE">
+            <ChipSelect options={FUB_OPTS} value={otaku.fubFree || ''} onChange={v => updateOtaku({ fubFree: v })} readOnly={!editMode} />
+          </LabelRow>
 
           {editMode && (
             <textarea className="textarea text-xs" rows={2} placeholder="FUB FREE 설명"
@@ -142,12 +139,9 @@ export default function AboutOtaku({ otaku, updateOtaku, profile }) {
             <p className="text-xs px-3 py-2 rounded-lg" style={{ color: 'var(--txm)', background: 'var(--elevated)' }}>{otaku.fubFreeDesc}</p>
           )}
 
-          {(otaku.accountTendencies?.length > 0 || editMode) && (
-            <LabelRow label="계정 성향">
-              {editMode ? <ChipSelect options={TENDENCY_OPTS} value={otaku.accountTendencies || []} onChange={v => updateOtaku({ accountTendencies: v })} multi />
-                : <div className="flex flex-wrap gap-1">{(otaku.accountTendencies || []).map(t => <span key={t} className="tag">{t}</span>)}</div>}
-            </LabelRow>
-          )}
+          <LabelRow label="계정 성향">
+            <ChipSelect options={TENDENCY_OPTS} value={otaku.accountTendencies || []} onChange={v => updateOtaku({ accountTendencies: v })} multi readOnly={!editMode} />
+          </LabelRow>
 
           {editMode && (
             <textarea className="textarea text-xs" rows={2} placeholder="계정 성향 설명"
@@ -202,12 +196,9 @@ export default function AboutOtaku({ otaku, updateOtaku, profile }) {
             )}
           </div>
 
-          {(otaku.genreTendencies?.length > 0 || editMode) && (
-            <LabelRow label="장르 성향">
-              {editMode ? <ChipSelect options={GENRE_TENDENCY_OPTS} value={otaku.genreTendencies || []} onChange={v => updateOtaku({ genreTendencies: v })} multi />
-                : <div className="flex flex-wrap gap-1">{(otaku.genreTendencies || []).map(t => <span key={t} className="tag">{t}</span>)}</div>}
-            </LabelRow>
-          )}
+          <LabelRow label="장르 성향">
+            <ChipSelect options={GENRE_TENDENCY_OPTS} value={otaku.genreTendencies || []} onChange={v => updateOtaku({ genreTendencies: v })} multi readOnly={!editMode} />
+          </LabelRow>
 
           {(otaku.dislikedContent || editMode) && (
             <LabelRow label="불호 소재">
