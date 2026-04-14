@@ -28,8 +28,31 @@ function CharThumb({ imageId, name, size = 40 }) {
   )
 }
 
+// 이미지 업로드 헬퍼
+function CharImageUpload({ label, imageId, preview, onChange, circle = false }) {
+  const [src, setSrc] = useState(null)
+  useEffect(() => {
+    if (imageId && !preview) getImage(imageId).then(setSrc)
+    else setSrc(null)
+  }, [imageId, preview])
+  const imgSrc = preview || src
+  const cls = circle ? 'rounded-full' : 'rounded-lg'
+  return (
+    <label className="flex flex-col items-center gap-1 cursor-pointer">
+      <div className={`w-full aspect-square overflow-hidden ${cls} flex items-center justify-center`}
+        style={{ background: 'var(--elevated)', border: '1px solid var(--border)' }}>
+        {imgSrc
+          ? <img src={imgSrc} alt={label} className={`w-full h-full object-cover ${cls}`} />
+          : <ImageIcon size={18} style={{ color: 'var(--txs)' }} />}
+      </div>
+      <span className="text-xs" style={{ color: 'var(--txm)' }}>{label}</span>
+      <input type="file" accept="image/*" className="hidden" onChange={onChange} />
+    </label>
+  )
+}
+
 // 개인 캐릭터 폼 초기값
-const emptyIndividual = { type: 'individual', workId: '', name: '', bio: '', thumbnailImageId: null, profileFields: [], relations: [], timeline: [] }
+const emptyIndividual = { type: 'individual', workId: '', name: '', bio: '', personality: '', traits: '', thumbnailImageId: null, fullBodyImageId: null, headImageId: null, profileFields: [], relations: [], timeline: [] }
 const emptyPair = { type: 'pair', workId: '', characterA: '', characterB: '', thumbnailImageId: null, description: '', timeline: [] }
 const emptyGroup = { type: 'group', workId: '', groupName: '', members: [], thumbnailImageId: null, description: '' }
 
@@ -120,17 +143,24 @@ export default function Characters() {
   // 같은 작품 내 개인 캐릭터 목록
   const sameWorkChars = (workId) => characters.filter(c => c.workId === workId && c.type === 'individual')
 
-  // 해당 캐릭터의 로그 (갤러리+글)
-  const getCharLogs = (charId) => ({
-    gallery: posts.filter(p => p.characterTags?.includes(charId)),
-    writings: writings.filter(w => w.characterTags?.includes(charId)),
-  })
+  // 해당 캐릭터의 로그 — tags 배열에서 캐릭터명으로 매칭
+  const getCharLogs = (char) => {
+    const name = (char.name || '').toLowerCase()
+    return {
+      gallery:  posts.filter(p => (p.tags || []).some(t => t.toLowerCase() === name)),
+      writings: writings.filter(w => (w.tags || []).some(t => t.toLowerCase() === name)),
+    }
+  }
 
-  // 페어 로그 (두 캐릭터 모두 포함)
-  const getPairLogs = (charA, charB) => ({
-    gallery: posts.filter(p => p.characterTags?.includes(charA) && p.characterTags?.includes(charB)),
-    writings: writings.filter(w => w.characterTags?.includes(charA) && w.characterTags?.includes(charB)),
-  })
+  // 페어 로그 (두 캐릭터 이름 모두 포함)
+  const getPairLogs = (charIdA, charIdB) => {
+    const nameA = (characters.find(c => c.id === charIdA)?.name || '').toLowerCase()
+    const nameB = (characters.find(c => c.id === charIdB)?.name || '').toLowerCase()
+    return {
+      gallery:  posts.filter(p => { const t = (p.tags || []).map(x => x.toLowerCase()); return t.includes(nameA) && t.includes(nameB) }),
+      writings: writings.filter(w => { const t = (w.tags || []).map(x => x.toLowerCase()); return t.includes(nameA) && t.includes(nameB) }),
+    }
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6 animate-fade-in">
@@ -215,18 +245,32 @@ export default function Characters() {
                 <label className="block text-xs font-medium mb-1" style={{ color: 'var(--txm)' }}>한줄소개</label>
                 <textarea className="textarea" rows={2} value={form.bio || ''} onChange={e => setForm(f => ({ ...f, bio: e.target.value }))} placeholder="캐릭터 소개" />
               </div>
-              {/* 썸네일 */}
               <div>
-                <label className="block text-xs font-medium mb-1" style={{ color: 'var(--txm)' }}>썸네일 이미지</label>
-                <div className="flex items-center gap-3">
-                  {thumbPreview
-                    ? <img src={thumbPreview} alt="" className="w-12 h-12 rounded-full object-cover" style={{ border: '2px solid var(--border)' }} />
-                    : <CharThumb imageId={form.thumbnailImageId} name={form.name} size={48} />
-                  }
-                  <label className="btn-ghost cursor-pointer text-xs">
-                    이미지 선택
-                    <input type="file" accept="image/*" className="hidden" onChange={handleThumb} />
-                  </label>
+                <label className="block text-xs font-medium mb-1" style={{ color: 'var(--txm)' }}>성격</label>
+                <textarea className="textarea" rows={3} value={form.personality || ''} onChange={e => setForm(f => ({ ...f, personality: e.target.value }))} placeholder="성격을 자유롭게 서술해주세요" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium mb-1" style={{ color: 'var(--txm)' }}>특징</label>
+                <textarea className="textarea" rows={3} value={form.traits || ''} onChange={e => setForm(f => ({ ...f, traits: e.target.value }))} placeholder="외형적 특징, 버릇, 능력 등" />
+              </div>
+              {/* 이미지들 */}
+              <div>
+                <label className="block text-xs font-medium mb-2" style={{ color: 'var(--txm)' }}>이미지</label>
+                <div className="grid grid-cols-3 gap-3">
+                  <CharImageUpload label="썸네일" imageId={form.thumbnailImageId} preview={thumbPreview}
+                    onChange={handleThumb} circle />
+                  <CharImageUpload label="전신" imageId={form.fullBodyImageId}
+                    onChange={async e => {
+                      const file = e.target.files[0]; if (!file) return
+                      const b64 = await resizeImage(file, 800); const id = genId()
+                      await saveImage(id, b64); setForm(f => ({ ...f, fullBodyImageId: id }))
+                    }} />
+                  <CharImageUpload label="두상/상반신" imageId={form.headImageId}
+                    onChange={async e => {
+                      const file = e.target.files[0]; if (!file) return
+                      const b64 = await resizeImage(file, 600); const id = genId()
+                      await saveImage(id, b64); setForm(f => ({ ...f, headImageId: id }))
+                    }} />
                 </div>
               </div>
               {/* 커스텀 프로필 필드 */}
@@ -444,6 +488,40 @@ function CharCard({ char, works, characters, onEdit, onDelete, onClick }) {
   )
 }
 
+// 전신/두상 이미지 표시 컴포넌트
+function CharDetailImages({ fullBodyId, headId }) {
+  const [fullSrc, setFullSrc] = useState(null)
+  const [headSrc, setHeadSrc] = useState(null)
+  const [zoom, setZoom] = useState(null) // src string
+
+  useEffect(() => { if (fullBodyId) getImage(fullBodyId).then(setFullSrc) }, [fullBodyId])
+  useEffect(() => { if (headId) getImage(headId).then(setHeadSrc) }, [headId])
+
+  return (
+    <>
+      <div className="flex gap-2">
+        {fullSrc && (
+          <div className="cursor-pointer rounded-lg overflow-hidden" style={{ width: 120, flexShrink: 0, border: '1px solid var(--border)' }} onClick={() => setZoom(fullSrc)}>
+            <img src={fullSrc} alt="전신" className="w-full object-cover" style={{ maxHeight: 200, objectPosition: 'top' }} />
+            <div className="text-center text-xs py-0.5" style={{ color: 'var(--txs)', background: 'var(--elevated)' }}>전신</div>
+          </div>
+        )}
+        {headSrc && (
+          <div className="cursor-pointer rounded-lg overflow-hidden" style={{ width: 120, flexShrink: 0, border: '1px solid var(--border)' }} onClick={() => setZoom(headSrc)}>
+            <img src={headSrc} alt="두상" className="w-full object-cover" style={{ maxHeight: 200, objectPosition: 'top' }} />
+            <div className="text-center text-xs py-0.5" style={{ color: 'var(--txs)', background: 'var(--elevated)' }}>두상</div>
+          </div>
+        )}
+      </div>
+      {zoom && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.88)' }} onClick={() => setZoom(null)}>
+          <img src={zoom} alt="" className="max-w-full max-h-full object-contain rounded-lg" style={{ maxHeight: '90vh' }} />
+        </div>
+      )}
+    </>
+  )
+}
+
 // 캐릭터 상세 모달
 function CharDetailModal({ char, works, characters, posts, writings, getCharLogs, getPairLogs, activeTab, setActiveTab, onClose, onEdit, onNavigateChar, navigate }) {
   const getName = (id) => characters.find(c => c.id === id)?.name || '?'
@@ -457,7 +535,7 @@ function CharDetailModal({ char, works, characters, posts, writings, getCharLogs
 
   const logs = char.type === 'pair'
     ? getPairLogs(char.characterA, char.characterB)
-    : getCharLogs(char.id)
+    : getCharLogs(char)
 
   return (
     <Modal isOpen={true} onClose={onClose} title={char.name || char.groupName || `${getName(char.characterA)} × ${getName(char.characterB)}`} size="lg">
@@ -477,21 +555,43 @@ function CharDetailModal({ char, works, characters, posts, writings, getCharLogs
 
       {/* 개인 — 프로필 */}
       {activeTab === 'profile' && char.type === 'individual' && (
-        <div className="flex gap-5">
-          <CharThumb imageId={char.thumbnailImageId} name={char.name || char.groupName} size={80} />
-          <div className="flex-1">
-            <div className="text-lg font-bold mb-1" style={{ color: 'var(--tx)' }}>{char.name}</div>
-            <div className="text-xs mb-2" style={{ color: 'var(--txm)' }}>{getWorkTitle(char.workId, works)}</div>
-            {char.bio && <p className="text-sm mb-3" style={{ color: 'var(--tx)' }}>{char.bio}</p>}
-            <div className="grid grid-cols-2 gap-2">
-              {(char.profileFields || []).map((pf) => (
-                <div key={pf.id} className="text-xs">
-                  <span style={{ color: 'var(--txm)' }}>{pf.label} </span>
-                  <span style={{ color: 'var(--tx)' }}>{pf.value}</span>
+        <div className="space-y-4">
+          {/* 상단: 썸네일 + 이름 + 기본 정보 */}
+          <div className="flex gap-4">
+            <CharThumb imageId={char.thumbnailImageId} name={char.name} size={72} />
+            <div className="flex-1">
+              <div className="text-lg font-bold mb-0.5" style={{ color: 'var(--tx)' }}>{char.name}</div>
+              {char.bio && <p className="text-sm mb-2" style={{ color: 'var(--txm)' }}>{char.bio}</p>}
+              {(char.profileFields || []).length > 0 && (
+                <div className="grid grid-cols-2 gap-1.5">
+                  {char.profileFields.map((pf) => (
+                    <div key={pf.id} className="text-xs">
+                      <span style={{ color: 'var(--txs)' }}>{pf.label} </span>
+                      <span style={{ color: 'var(--tx)' }}>{pf.value}</span>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              )}
             </div>
           </div>
+          {/* 전신/두상 이미지 */}
+          {(char.fullBodyImageId || char.headImageId) && (
+            <CharDetailImages fullBodyId={char.fullBodyImageId} headId={char.headImageId} />
+          )}
+          {/* 성격 */}
+          {char.personality && (
+            <div>
+              <div className="text-xs font-medium mb-1" style={{ color: 'var(--txm)', borderLeft: '2px solid var(--accent)', paddingLeft: 6 }}>성격</div>
+              <p className="text-sm" style={{ color: 'var(--tx)', whiteSpace: 'pre-wrap' }}>{char.personality}</p>
+            </div>
+          )}
+          {/* 특징 */}
+          {char.traits && (
+            <div>
+              <div className="text-xs font-medium mb-1" style={{ color: 'var(--txm)', borderLeft: '2px solid var(--accent2)', paddingLeft: 6 }}>특징</div>
+              <p className="text-sm" style={{ color: 'var(--tx)', whiteSpace: 'pre-wrap' }}>{char.traits}</p>
+            </div>
+          )}
         </div>
       )}
 

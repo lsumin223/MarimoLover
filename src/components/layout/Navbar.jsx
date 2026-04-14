@@ -19,7 +19,7 @@ const NAV_LINKS = [
 ]
 
 // WorkSelector를 표시할 경로 패턴
-const WORK_SELECTOR_PATHS = ['/characters', '/gallery', '/writings']
+const WORK_SELECTOR_PATHS = ['/characters']
 
 export default function Navbar() {
   const { nickname, darkMode, toggleDarkMode } = useSettingsStore()

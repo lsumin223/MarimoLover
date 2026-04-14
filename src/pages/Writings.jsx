@@ -2,11 +2,10 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Plus, Edit2, Trash2, FileText, Image as ImageIcon, X } from 'lucide-react'
-import useSettingsStore from '../store/useSettingsStore'
-import useWorkStore from '../store/useWorkStore'
 import useWritingStore from '../store/useWritingStore'
 import Modal from '../components/common/Modal'
 import ConfirmDialog from '../components/common/ConfirmDialog'
+import TagInput from '../components/common/TagInput'
 import { saveImage, resizeImage, getImage, deleteImage } from '../lib/imageDB'
 
 const genId = () => 'id-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7)
@@ -23,13 +22,11 @@ function SeriesThumb({ imageId, name }) {
   )
 }
 
-const emptySeriesForm = { title: '', description: '', mainCharacters: '', workId: '', thumbnailImageId: null }
-const emptyWritingForm = { title: '', chapterNum: '', date: new Date().toISOString().slice(0, 10), content: '' }
+const emptySeriesForm = { title: '', description: '', mainCharacters: '', thumbnailImageId: null }
+const emptyWritingForm = { title: '', chapterNum: '', date: new Date().toISOString().slice(0, 10), content: '', tags: [] }
 
 export default function Writings() {
   const navigate = useNavigate()
-  const { selectedWorkId } = useSettingsStore()
-  const { works } = useWorkStore()
   const { series, writings, addSeries, updateSeries, deleteSeries, addWriting, updateWriting, deleteWriting } = useWritingStore()
 
   // 선택된 시리즈
@@ -50,10 +47,7 @@ export default function Writings() {
   const [deleteSeriesTarget, setDeleteSeriesTarget] = useState(null)
   const [deleteWritingTarget, setDeleteWritingTarget] = useState(null)
 
-  // 작품 필터에 맞는 시리즈 목록
-  const filteredSeries = series
-    .filter(s => !selectedWorkId || s.workId === selectedWorkId)
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+  const filteredSeries = [...series].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
 
   // 선택된 시리즈 데이터
   const currentSeries = series.find(s => s.id === selectedSeriesId)
@@ -62,9 +56,6 @@ export default function Writings() {
   const currentWritings = writings
     .filter(w => w.seriesId === selectedSeriesId)
     .sort((a, b) => (a.chapterNum || 0) - (b.chapterNum || 0))
-
-  // 작품 필터 변경 시 선택 초기화
-  useEffect(() => { setSelectedSeriesId(null) }, [selectedWorkId])
 
   // 시리즈 선택 시 자동으로 첫 시리즈 선택
   useEffect(() => {
@@ -92,13 +83,13 @@ export default function Writings() {
   // 시리즈 폼 열기
   const openSeriesCreate = () => {
     setEditSeries(null)
-    setSeriesForm({ ...emptySeriesForm, workId: selectedWorkId || works[0]?.id || '' })
+    setSeriesForm({ ...emptySeriesForm })
     setSeriesThumbSrc(null)
     setSeriesFormOpen(true)
   }
   const openSeriesEdit = (s) => {
     setEditSeries(s)
-    setSeriesForm({ title: s.title, description: s.description || '', mainCharacters: s.mainCharacters || '', workId: s.workId || '', thumbnailImageId: s.thumbnailImageId || null })
+    setSeriesForm({ title: s.title, description: s.description || '', mainCharacters: s.mainCharacters || '', thumbnailImageId: s.thumbnailImageId || null })
     setSeriesThumbSrc(null)
     if (s.thumbnailImageId) getImage(s.thumbnailImageId).then(setSeriesThumbSrc)
     setSeriesFormOpen(true)
@@ -137,7 +128,7 @@ export default function Writings() {
   // 글 저장
   const saveWriting = () => {
     if (!writingForm.title || !selectedSeriesId) return
-    const payload = { ...writingForm, seriesId: selectedSeriesId, workId: currentSeries?.workId || '' }
+    const payload = { ...writingForm, seriesId: selectedSeriesId }
     if (editWriting) updateWriting(editWriting.id, payload)
     else addWriting(payload)
     setWritingFormOpen(false)
@@ -277,13 +268,6 @@ export default function Writings() {
             <label className="block text-xs font-medium mb-1" style={{ color: 'var(--txm)' }}>설명</label>
             <textarea className="textarea" rows={3} value={seriesForm.description} onChange={e => setSeriesForm(f => ({ ...f, description: e.target.value }))} placeholder="시리즈 소개" />
           </div>
-          <div>
-            <label className="block text-xs font-medium mb-1" style={{ color: 'var(--txm)' }}>작품</label>
-            <select className="input" value={seriesForm.workId} onChange={e => setSeriesForm(f => ({ ...f, workId: e.target.value }))}>
-              <option value="">미분류</option>
-              {works.map(w => <option key={w.id} value={w.id}>{w.title}</option>)}
-            </select>
-          </div>
         </div>
         <div className="flex justify-end gap-2 mt-5">
           <button className="btn-ghost" onClick={() => setSeriesFormOpen(false)}>취소</button>
@@ -307,6 +291,10 @@ export default function Writings() {
           <div>
             <label className="block text-xs font-medium mb-1" style={{ color: 'var(--txm)' }}>제목 *</label>
             <input className="input" value={writingForm.title} onChange={e => setWritingForm(f => ({ ...f, title: e.target.value }))} placeholder="글 제목" />
+          </div>
+          <div>
+            <label className="block text-xs font-medium mb-1" style={{ color: 'var(--txm)' }}>태그 (캐릭터명 등)</label>
+            <TagInput tags={writingForm.tags || []} onChange={v => setWritingForm(f => ({ ...f, tags: v }))} placeholder="태그 입력 후 Enter" />
           </div>
           <div>
             <label className="block text-xs font-medium mb-1" style={{ color: 'var(--txm)' }}>본문</label>
