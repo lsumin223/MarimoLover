@@ -49,9 +49,10 @@ export const initialAbout = {
     genreTendencies: [], // ['1차','2차','드림']
     dislikedContent: '',
     // TRPG 성향
-    gmStyle: [],       // checked option keys (strings)
-    plStyle: [],       // checked option keys (strings)
+    ovStyle: [],        // 한눈에 보는 성향 chips
+    plStyle: [],        // PL 성향 checked keys
+    plStyleNote: '',    // PL 성향 메모
+    latentRatings: {},  // { key: 'ok'|'cond'|'no' }
     trpgTriggers: '',
-    showTrpg: false,
   },
 }
