@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Edit2, Plus, X, Upload, ExternalLink } from 'lucide-react'
 import { getImage, saveImage, resizeImage } from '../../lib/imageDB'
+import { useIsAdmin } from '../../store/useAdminStore'
 
 const genId = () => 'id-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7)
 
@@ -91,6 +92,7 @@ function GenreCard({ item, editMode, onChange, onImageChange, onRemove }) {
 }
 
 export default function AboutOtaku({ otaku, updateOtaku, profile }) {
+  const isAdmin = useIsAdmin()
   const [editMode, setEditMode] = useState(false)
 
   const handleGenreImage = async (e, idx) => {
@@ -109,9 +111,11 @@ export default function AboutOtaku({ otaku, updateOtaku, profile }) {
           <div className="w-1.5 h-5 rounded-full" style={{ background: 'var(--accent2)' }} />
           <h2 className="text-base font-bold" style={{ color: 'var(--tx)' }}>오타쿠 설명서</h2>
         </div>
-        <button className="btn-ghost flex items-center gap-1 text-sm" onClick={() => setEditMode(v => !v)}>
-          <Edit2 size={13} /> {editMode ? '완료' : '편집'}
-        </button>
+        {isAdmin && (
+          <button className="btn-ghost flex items-center gap-1 text-sm" onClick={() => setEditMode(v => !v)}>
+            <Edit2 size={13} /> {editMode ? '완료' : '편집'}
+          </button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 gap-5" style={{ gridTemplateColumns: '1fr 1fr' }}>

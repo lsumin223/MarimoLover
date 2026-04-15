@@ -1,8 +1,9 @@
 // 설정 페이지
 import { useState } from 'react'
-import { RotateCcw, Check, Plus, Edit2, Trash2, X } from 'lucide-react'
+import { RotateCcw, Check, Plus, Edit2, Trash2, X, Lock } from 'lucide-react'
 import useSettingsStore from '../store/useSettingsStore'
 import useWorkStore from '../store/useWorkStore'
+import useAdminStore from '../store/useAdminStore'
 import Modal from '../components/common/Modal'
 import ConfirmDialog from '../components/common/ConfirmDialog'
 import { saveImage, resizeImage, getImage } from '../lib/imageDB'
@@ -50,9 +51,22 @@ export default function Settings() {
     activeWidgets, toggleWidget,
     resetWidgetLayouts,
     guestbookPasswordHash, setGuestbookPasswordHash,
+    adminPasswordHash, setAdminPasswordHash,
   } = useSettingsStore()
+  const { isAdmin, openLoginModal } = useAdminStore()
 
   const { works, addWork, updateWork, deleteWork } = useWorkStore()
+
+  // 관리자 비밀번호가 설정된 상태에서 로그인 안 됐으면 잠금 화면
+  if (adminPasswordHash && !isAdmin) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-20 text-center animate-fade-in">
+        <Lock size={40} className="mx-auto mb-4" style={{ color: 'var(--txs)' }} />
+        <p className="text-sm mb-6" style={{ color: 'var(--txm)' }}>설정 페이지는 관리자만 접근할 수 있습니다.</p>
+        <button className="btn-accent" onClick={openLoginModal}>관리자 로그인</button>
+      </div>
+    )
+  }
 
   // 메인 비주얼 이미지
   const [mainVisualSrc, setMainVisualSrc] = useState(null)
@@ -64,7 +78,25 @@ export default function Settings() {
   const [workForm, setWorkForm] = useState({ title: '', description: '' })
   const [deleteWorkTarget, setDeleteWorkTarget] = useState(null)
 
-  // 비밀번호 설정
+  // 관리자 비밀번호 설정
+  const [adminPwInput, setAdminPwInput] = useState('')
+  const [adminPwConfirm, setAdminPwConfirm] = useState('')
+  const [adminPwSuccess, setAdminPwSuccess] = useState(false)
+
+  const saveAdminPassword = async () => {
+    if (!adminPwInput.trim()) return
+    if (adminPwInput !== adminPwConfirm) { alert('비밀번호가 일치하지 않습니다.'); return }
+    const hash = await sha256(adminPwInput.trim())
+    setAdminPasswordHash(hash)
+    setAdminPwInput(''); setAdminPwConfirm('')
+    setAdminPwSuccess(true); setTimeout(() => setAdminPwSuccess(false), 2000)
+  }
+
+  const removeAdminPassword = () => {
+    setAdminPasswordHash(null)
+  }
+
+  // 방명록 비밀번호 설정
   const [pwInput, setPwInput] = useState('')
   const [pwConfirm, setPwConfirm] = useState('')
   const [pwSuccess, setPwSuccess] = useState(false)
@@ -216,6 +248,29 @@ export default function Settings() {
         <button className="btn-accent flex items-center gap-1.5 text-sm" onClick={() => { setWorkEdit(null); setWorkForm({ title: '', description: '' }); setWorkFormOpen(true) }}>
           <Plus size={13} /> 작품 추가
         </button>
+      </SettingSection>
+
+      {/* 관리자 비밀번호 */}
+      <SettingSection title="관리자 비밀번호">
+        <p className="text-xs mb-3" style={{ color: 'var(--txm)' }}>
+          {adminPasswordHash
+            ? '비밀번호가 설정되어 있습니다. 방문자는 읽기 전용으로 사이트를 볼 수 있고, 관리자만 글/설정을 수정할 수 있습니다.'
+            : '비밀번호를 설정하면 방문자는 읽기 전용, 관리자만 게시글/설정 수정이 가능합니다.'}
+        </p>
+        <div className="space-y-2">
+          <input className="input" type="password" placeholder="새 비밀번호" value={adminPwInput} onChange={e => setAdminPwInput(e.target.value)} />
+          <input className="input" type="password" placeholder="비밀번호 확인" value={adminPwConfirm} onChange={e => setAdminPwConfirm(e.target.value)} />
+          <div className="flex gap-2 items-center">
+            <button className="flex items-center gap-1.5 btn-accent text-sm" onClick={saveAdminPassword}>
+              {adminPwSuccess ? <><Check size={13} /> 저장됨</> : '저장'}
+            </button>
+            {adminPasswordHash && (
+              <button className="btn-ghost text-sm" style={{ color: '#f87171' }} onClick={removeAdminPassword}>
+                비밀번호 제거 (전체 공개)
+              </button>
+            )}
+          </div>
+        </div>
       </SettingSection>
 
       {/* 방명록 비밀번호 */}

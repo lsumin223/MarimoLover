@@ -2,6 +2,7 @@ import { HashRouter, Routes, Route } from 'react-router-dom'
 import { useEffect } from 'react'
 import useSettingsStore from './store/useSettingsStore'
 import Navbar from './components/layout/Navbar'
+import AdminLoginModal from './components/common/AdminLoginModal'
 
 // 페이지 임포트
 import Home from './pages/Home'
@@ -22,6 +23,7 @@ function Layout() {
   return (
     <>
       <Navbar />
+      <AdminLoginModal />
       <main
         className="min-h-screen"
         style={{

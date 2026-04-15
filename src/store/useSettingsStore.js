@@ -48,6 +48,9 @@ const useSettingsStore = create(
       // 방명록 비밀번호 해시
       guestbookPasswordHash: null,
 
+      // 관리자 비밀번호 해시 (null이면 비밀번호 미설정 = 누구나 수정 가능)
+      adminPasswordHash: null,
+
       // --- 액션 ---
 
       setNickname: (nickname) => set({ nickname }),
@@ -91,6 +94,9 @@ const useSettingsStore = create(
 
       setGuestbookPasswordHash: (guestbookPasswordHash) =>
         set({ guestbookPasswordHash }),
+
+      setAdminPasswordHash: (adminPasswordHash) =>
+        set({ adminPasswordHash }),
     }),
     {
       name: 'settings-store',

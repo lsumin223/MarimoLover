@@ -5,6 +5,7 @@ import { Plus, Edit2, Trash2, X, ChevronRight, Image as ImageIcon, FileText } fr
 import useCharacterStore from '../store/useCharacterStore'
 import useGalleryStore from '../store/useGalleryStore'
 import useWritingStore from '../store/useWritingStore'
+import { useIsAdmin } from '../store/useAdminStore'
 import Modal from '../components/common/Modal'
 import ConfirmDialog from '../components/common/ConfirmDialog'
 import { getImage, saveImage, resizeImage } from '../lib/imageDB'
@@ -54,6 +55,7 @@ const emptyPair = { type: 'pair', workId: '', characterA: '', characterB: '', th
 const emptyGroup = { type: 'group', workId: '', groupName: '', members: [], thumbnailImageId: null, description: '' }
 
 export default function Characters() {
+  const isAdmin = useIsAdmin()
   const navigate = useNavigate()
   const { characters, addCharacter, updateCharacter, deleteCharacter } = useCharacterStore()
   const { posts } = useGalleryStore()
@@ -160,9 +162,11 @@ export default function Characters() {
       {/* 헤더 */}
       <div className="flex items-center justify-between mb-5">
         <h1 className="text-xl font-bold" style={{ color: 'var(--tx)' }}>캐릭터</h1>
-        <button className="btn-accent flex items-center gap-1.5" onClick={openCreate}>
-          <Plus size={14} /> 새 캐릭터
-        </button>
+        {isAdmin && (
+          <button className="btn-accent flex items-center gap-1.5" onClick={openCreate}>
+            <Plus size={14} /> 새 캐릭터
+          </button>
+        )}
       </div>
 
       {/* 타입 필터 */}
@@ -192,6 +196,7 @@ export default function Characters() {
               key={char.id}
               char={char}
               characters={characters}
+              isAdmin={isAdmin}
               onEdit={() => openEdit(char)}
               onDelete={() => setDeleteTarget(char)}
               onClick={() => openDetail(char)}
@@ -381,6 +386,7 @@ export default function Characters() {
           characters={characters}
           posts={posts}
           writings={writings}
+          isAdmin={isAdmin}
           getCharLogs={getCharLogs}
           getPairLogs={getPairLogs}
           activeTab={activeTab}
@@ -404,7 +410,7 @@ export default function Characters() {
 }
 
 // 캐릭터 카드 컴포넌트
-function CharCard({ char, characters, onEdit, onDelete, onClick }) {
+function CharCard({ char, characters, isAdmin, onEdit, onDelete, onClick }) {
   const [hovered, setHovered] = useState(false)
   const getName = (id) => characters.find(c => c.id === id)?.name || '?'
   const getThumb = (id) => characters.find(c => c.id === id)?.thumbnailImageId || null
@@ -419,8 +425,8 @@ function CharCard({ char, characters, onEdit, onDelete, onClick }) {
       onMouseLeave={() => setHovered(false)}
       onClick={onClick}
     >
-      {/* 호버 시 편집/삭제 버튼 */}
-      {hovered && (
+      {/* 호버 시 편집/삭제 버튼 — 관리자만 */}
+      {isAdmin && hovered && (
         <div className="absolute top-2 right-2 flex gap-1" onClick={e => e.stopPropagation()}>
           <button className="w-7 h-7 rounded flex items-center justify-center transition-colors" style={{ background: 'var(--elevated)', color: 'var(--txm)' }} onClick={onEdit}><Edit2 size={13} /></button>
           <button className="w-7 h-7 rounded flex items-center justify-center transition-colors" style={{ background: 'var(--elevated)', color: '#f87171' }} onClick={onDelete}><Trash2 size={13} /></button>
@@ -504,7 +510,7 @@ function CharDetailImages({ fullBodyId, headId }) {
 }
 
 // 캐릭터 상세 모달
-function CharDetailModal({ char, characters, posts, writings, getCharLogs, getPairLogs, activeTab, setActiveTab, onClose, onEdit, onNavigateChar, navigate }) {
+function CharDetailModal({ char, characters, posts, writings, isAdmin, getCharLogs, getPairLogs, activeTab, setActiveTab, onClose, onEdit, onNavigateChar, navigate }) {
   const getName = (id) => characters.find(c => c.id === id)?.name || '?'
   const getThumb = (id) => characters.find(c => c.id === id)?.thumbnailImageId || null
 
@@ -531,7 +537,7 @@ function CharDetailModal({ char, characters, posts, writings, getCharLogs, getPa
               onClick={() => setActiveTab(t)}>{l}</button>
           ))}
         </div>
-        <button className="btn-ghost text-xs" onClick={onEdit}><Edit2 size={12} className="inline mr-1" />수정</button>
+        {isAdmin && <button className="btn-ghost text-xs" onClick={onEdit}><Edit2 size={12} className="inline mr-1" />수정</button>}
       </div>
 
       {/* 개인 — 프로필 */}

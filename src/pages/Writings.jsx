@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { Plus, Edit2, Trash2, FileText, Image as ImageIcon, X } from 'lucide-react'
 import useWritingStore from '../store/useWritingStore'
 import useCharacterStore from '../store/useCharacterStore'
+import { useIsAdmin } from '../store/useAdminStore'
 import Modal from '../components/common/Modal'
 import ConfirmDialog from '../components/common/ConfirmDialog'
 import TagInput from '../components/common/TagInput'
@@ -28,6 +29,7 @@ const emptyWritingForm = { title: '', chapterNum: '', date: new Date().toISOStri
 
 export default function Writings() {
   const navigate = useNavigate()
+  const isAdmin = useIsAdmin()
   const { series, writings, addSeries, updateSeries, deleteSeries, addWriting, updateWriting, deleteWriting } = useWritingStore()
   const { characters } = useCharacterStore()
   const individualChars = characters.filter(c => c.type === 'individual' && c.name)
@@ -152,9 +154,11 @@ export default function Writings() {
             <option key={s.id} value={s.id}>{s.title} ({writings.filter(w => w.seriesId === s.id).length}화)</option>
           ))}
         </select>
-        <button className="btn-accent flex items-center gap-1 text-xs shrink-0" onClick={openSeriesCreate}>
-          <Plus size={12} /> 새 시리즈
-        </button>
+        {isAdmin && (
+          <button className="btn-accent flex items-center gap-1 text-xs shrink-0" onClick={openSeriesCreate}>
+            <Plus size={12} /> 새 시리즈
+          </button>
+        )}
       </div>
 
       <div className="flex" style={{ minHeight: 'calc(100vh - 100px)' }}>
@@ -162,11 +166,13 @@ export default function Writings() {
         <div className="hidden lg:block w-56 shrink-0 border-r border-border overflow-y-auto" style={{ background: 'var(--surface)' }}>
           <div className="flex items-center justify-between px-3 py-3 border-b border-border">
             <span className="text-xs font-bold tracking-widest uppercase" style={{ color: 'var(--txm)' }}>시리즈</span>
-            <button
-              className="w-6 h-6 rounded flex items-center justify-center"
-              style={{ background: 'color-mix(in srgb, var(--accent) 12%, transparent)', color: 'var(--accent)' }}
-              onClick={openSeriesCreate}
-            ><Plus size={13} /></button>
+            {isAdmin && (
+              <button
+                className="w-6 h-6 rounded flex items-center justify-center"
+                style={{ background: 'color-mix(in srgb, var(--accent) 12%, transparent)', color: 'var(--accent)' }}
+                onClick={openSeriesCreate}
+              ><Plus size={13} /></button>
+            )}
           </div>
           {filteredSeries.length === 0 ? (
             <div className="px-3 py-6 text-xs text-center" style={{ color: 'var(--txs)' }}>시리즈가 없습니다</div>
@@ -213,23 +219,25 @@ export default function Writings() {
                 {currentSeries.mainCharacters && <div className="text-xs mb-1" style={{ color: 'var(--accent)' }}>{currentSeries.mainCharacters}</div>}
                 {currentSeries.description && <p className="text-xs leading-relaxed" style={{ color: 'var(--txm)' }}>{currentSeries.description}</p>}
               </div>
+              {isAdmin && (
               <div className="flex gap-1 shrink-0">
                 <button className="w-7 h-7 rounded flex items-center justify-center" style={{ color: 'var(--txm)' }} onClick={() => openSeriesEdit(currentSeries)}><Edit2 size={13} /></button>
                 <button className="w-7 h-7 rounded flex items-center justify-center" style={{ color: '#f87171' }} onClick={() => setDeleteSeriesTarget(currentSeries)}><Trash2 size={13} /></button>
               </div>
+            )}
             </div>
 
             {/* 글 목록 헤더 */}
             <div className="flex items-center justify-between mb-3">
               <span className="text-sm font-bold" style={{ color: 'var(--tx)' }}>글 목록 <span style={{ color: 'var(--txs)', fontWeight: 400 }}>({currentWritings.length})</span></span>
-              <button className="btn-accent flex items-center gap-1 text-xs" onClick={openWritingCreate}><Plus size={12} /> 새 글</button>
+              {isAdmin && <button className="btn-accent flex items-center gap-1 text-xs" onClick={openWritingCreate}><Plus size={12} /> 새 글</button>}
             </div>
 
             {/* 글 목록 */}
             {currentWritings.length === 0 ? (
               <div className="text-center py-16 rounded-xl" style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--txs)' }}>
                 <p className="mb-3 text-sm">등록된 글이 없습니다</p>
-                <button className="btn-ghost text-xs" onClick={openWritingCreate}>+ 첫 글 추가</button>
+                {isAdmin && <button className="btn-ghost text-xs" onClick={openWritingCreate}>+ 첫 글 추가</button>}
               </div>
             ) : (
               <div className="space-y-2">
@@ -250,10 +258,12 @@ export default function Writings() {
                       {w.content && <div className="text-xs truncate mt-0.5" style={{ color: 'var(--txm)' }}>{w.content.slice(0, 60)}</div>}
                     </div>
                     <div className="text-xs shrink-0" style={{ color: 'var(--txs)' }}>{w.date}</div>
-                    <div className="flex gap-1 shrink-0" onClick={e => e.stopPropagation()}>
-                      <button className="w-6 h-6 rounded flex items-center justify-center" style={{ color: 'var(--txm)' }} onClick={() => openWritingEdit(w)}><Edit2 size={11} /></button>
-                      <button className="w-6 h-6 rounded flex items-center justify-center" style={{ color: '#f87171' }} onClick={() => setDeleteWritingTarget(w)}><Trash2 size={11} /></button>
-                    </div>
+                    {isAdmin && (
+                      <div className="flex gap-1 shrink-0" onClick={e => e.stopPropagation()}>
+                        <button className="w-6 h-6 rounded flex items-center justify-center" style={{ color: 'var(--txm)' }} onClick={() => openWritingEdit(w)}><Edit2 size={11} /></button>
+                        <button className="w-6 h-6 rounded flex items-center justify-center" style={{ color: '#f87171' }} onClick={() => setDeleteWritingTarget(w)}><Trash2 size={11} /></button>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

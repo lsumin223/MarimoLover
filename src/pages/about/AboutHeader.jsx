@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
 import { Edit2, Upload } from 'lucide-react'
 import { getImage, saveImage, resizeImage } from '../../lib/imageDB'
+import { useIsAdmin } from '../../store/useAdminStore'
 
 const genId = () => 'id-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7)
 
 export default function AboutHeader({ otaku, updateOtaku, nickname }) {
+  const isAdmin = useIsAdmin()
   const [editMode, setEditMode] = useState(false)
   const [bannerSrc, setBannerSrc] = useState(null)
   const [profileSrc, setProfileSrc] = useState(null)
@@ -80,11 +82,13 @@ export default function AboutHeader({ otaku, updateOtaku, nickname }) {
             </div>
           )}
 
-          <div className="ml-auto mb-2">
-            <button className="btn-ghost flex items-center gap-1 text-xs" onClick={() => setEditMode(v => !v)}>
-              <Edit2 size={12} /> {editMode ? '완료' : '편집'}
-            </button>
-          </div>
+          {isAdmin && (
+            <div className="ml-auto mb-2">
+              <button className="btn-ghost flex items-center gap-1 text-xs" onClick={() => setEditMode(v => !v)}>
+                <Edit2 size={12} /> {editMode ? '완료' : '편집'}
+              </button>
+            </div>
+          )}
         </div>
 
         {/* 닉네임 + 핸들 */}

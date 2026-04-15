@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Plus, Edit2, Trash2, ChevronRight, Gamepad2, Image as ImageIcon, Lock } from 'lucide-react'
 import useTrpgStore from '../store/useTrpgStore'
+import { useIsAdmin } from '../store/useAdminStore'
 import Modal from '../components/common/Modal'
 import ConfirmDialog from '../components/common/ConfirmDialog'
 import { getImage, saveImage, resizeImage } from '../lib/imageDB'
@@ -18,6 +19,7 @@ function CoverThumb({ imageId, title }) {
 }
 
 export default function Trpg() {
+  const isAdmin = useIsAdmin()
   const navigate = useNavigate()
   const { campaigns, sessions, addCampaign, updateCampaign, deleteCampaign, addSession, updateSession, deleteSession } = useTrpgStore()
 
@@ -96,9 +98,11 @@ export default function Trpg() {
             <option key={c.id} value={c.id}>{c.title}{c.system ? ` (${c.system})` : ''}</option>
           ))}
         </select>
-        <button className="btn-accent flex items-center gap-1 text-xs shrink-0" onClick={openCampaignCreate}>
-          <Plus size={12} /> 새 캠페인
-        </button>
+        {isAdmin && (
+          <button className="btn-accent flex items-center gap-1 text-xs shrink-0" onClick={openCampaignCreate}>
+            <Plus size={12} /> 새 캠페인
+          </button>
+        )}
       </div>
 
       <div className="flex" style={{ minHeight: 'calc(100vh - 100px)' }}>
@@ -106,11 +110,13 @@ export default function Trpg() {
         <div className="hidden lg:block w-64 shrink-0 border-r border-border overflow-y-auto p-4" style={{ background: 'var(--surface)' }}>
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-semibold tracking-wide uppercase" style={{ color: 'var(--txm)' }}>캠페인</span>
-            <button
-              className="w-6 h-6 rounded flex items-center justify-center transition-colors"
-              style={{ color: 'var(--accent)', background: 'color-mix(in srgb, var(--accent) 12%, transparent)' }}
-              onClick={openCampaignCreate}
-            ><Plus size={14} /></button>
+            {isAdmin && (
+              <button
+                className="w-6 h-6 rounded flex items-center justify-center transition-colors"
+                style={{ color: 'var(--accent)', background: 'color-mix(in srgb, var(--accent) 12%, transparent)' }}
+                onClick={openCampaignCreate}
+              ><Plus size={14} /></button>
+            )}
           </div>
           <div className="space-y-1">
             {campaigns.length === 0 && <div className="text-xs py-4 text-center" style={{ color: 'var(--txs)' }}>캠페인이 없습니다</div>}
@@ -131,10 +137,12 @@ export default function Trpg() {
                   <div className="text-sm font-medium truncate" style={{ color: selectedCampaignId === c.id ? 'var(--accent)' : 'var(--tx)' }}>{c.title}</div>
                   {c.system && <div className="text-xs truncate" style={{ color: 'var(--txs)' }}>{c.system}</div>}
                 </div>
-                <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
-                  <button className="w-5 h-5 rounded flex items-center justify-center" style={{ color: 'var(--txm)' }} onClick={() => { setCampaignEdit(c); setCampaignForm({ title: c.title, system: c.system || '', description: c.description || '', coverImageId: c.coverImageId || null }); setCoverPreview(null); setCampaignFormOpen(true) }}><Edit2 size={11} /></button>
-                  <button className="w-5 h-5 rounded flex items-center justify-center" style={{ color: '#f87171' }} onClick={() => setDeleteCampaignTarget(c)}><Trash2 size={11} /></button>
-                </div>
+                {isAdmin && (
+                  <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
+                    <button className="w-5 h-5 rounded flex items-center justify-center" style={{ color: 'var(--txm)' }} onClick={() => { setCampaignEdit(c); setCampaignForm({ title: c.title, system: c.system || '', description: c.description || '', coverImageId: c.coverImageId || null }); setCoverPreview(null); setCampaignFormOpen(true) }}><Edit2 size={11} /></button>
+                    <button className="w-5 h-5 rounded flex items-center justify-center" style={{ color: '#f87171' }} onClick={() => setDeleteCampaignTarget(c)}><Trash2 size={11} /></button>
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -161,12 +169,14 @@ export default function Trpg() {
                     {currentCampaign.description && <p className="text-sm mt-2" style={{ color: 'var(--txm)' }}>{currentCampaign.description}</p>}
                   </div>
                 </div>
-                <button
-                  className="btn-accent flex items-center gap-1.5 shrink-0 ml-4"
-                  onClick={() => { setSessionEdit(null); setSessionForm({ title: '', date: new Date().toISOString().slice(0, 10), summary: '' }); setSessionFormOpen(true) }}
-                >
-                  <Plus size={14} /> 새 세션
-                </button>
+                {isAdmin && (
+                  <button
+                    className="btn-accent flex items-center gap-1.5 shrink-0 ml-4"
+                    onClick={() => { setSessionEdit(null); setSessionForm({ title: '', date: new Date().toISOString().slice(0, 10), summary: '' }); setSessionFormOpen(true) }}
+                  >
+                    <Plus size={14} /> 새 세션
+                  </button>
+                )}
               </div>
 
               {currentSessions.length === 0 ? (
@@ -197,11 +207,13 @@ export default function Trpg() {
                       {session.passwordHash && <Lock size={13} style={{ color: 'var(--txm)', flexShrink: 0 }} />}
                       {session.log?.length > 0 && <div className="text-xs shrink-0 px-2 py-0.5 rounded" style={{ background: 'var(--elevated)', color: 'var(--txm)' }}>{session.log.length}줄</div>}
                       <ChevronRight size={16} style={{ color: 'var(--txs)', flexShrink: 0 }} />
-                      {/* 편집/삭제 */}
-                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
-                        <button className="w-7 h-7 rounded flex items-center justify-center" style={{ background: 'var(--elevated)', color: 'var(--txm)' }} onClick={() => { setSessionEdit(session); setSessionForm({ title: session.title, date: session.date, summary: session.summary }); setSessionFormOpen(true) }}><Edit2 size={12} /></button>
-                        <button className="w-7 h-7 rounded flex items-center justify-center" style={{ background: 'var(--elevated)', color: '#f87171' }} onClick={() => setDeleteSessionTarget(session)}><Trash2 size={12} /></button>
-                      </div>
+                      {/* 편집/삭제 — 관리자만 */}
+                      {isAdmin && (
+                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
+                          <button className="w-7 h-7 rounded flex items-center justify-center" style={{ background: 'var(--elevated)', color: 'var(--txm)' }} onClick={() => { setSessionEdit(session); setSessionForm({ title: session.title, date: session.date, summary: session.summary }); setSessionFormOpen(true) }}><Edit2 size={12} /></button>
+                          <button className="w-7 h-7 rounded flex items-center justify-center" style={{ background: 'var(--elevated)', color: '#f87171' }} onClick={() => setDeleteSessionTarget(session)}><Trash2 size={12} /></button>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
