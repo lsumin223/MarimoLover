@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { ChevronLeft, Download, Upload, X, Plus, Trash2, Lock, Eye, EyeOff, Users, Check } from 'lucide-react'
 import useTrpgStore from '../store/useTrpgStore'
 import ConfirmDialog from '../components/common/ConfirmDialog'
+import { useIsAdmin } from '../store/useAdminStore'
 
 const genId = () => 'pl-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7)
 
@@ -34,6 +35,7 @@ function parseCcfoliaHtml(html) {
 }
 
 export default function TrpgSession() {
+  const isAdmin = useIsAdmin()
   const { sessionId } = useParams()
   const navigate = useNavigate()
   const { campaigns, sessions, updateSession } = useTrpgStore()
@@ -184,27 +186,29 @@ export default function TrpgSession() {
         <button className="flex items-center gap-1 text-sm btn-ghost" onClick={() => navigate('/trpg')}>
           <ChevronLeft size={16} /> TRPG
         </button>
-        <div className="flex gap-2">
-          {/* JSON 내보내기 */}
-          <button className="btn-ghost flex items-center gap-1.5 text-xs" onClick={handleExport}>
-            <Download size={13} /> 내보내기
-          </button>
-          {/* JSON 가져오기 */}
-          <label className="btn-ghost flex items-center gap-1.5 text-xs cursor-pointer">
-            <Upload size={13} /> 가져오기
-            <input type="file" accept=".json" className="hidden" onChange={handleImport} />
-          </label>
-          {/* 로그 붙여넣기 토글 */}
-          <button
-            className="px-3 py-1.5 rounded-md text-xs font-medium transition-all"
-            style={parseMode
-              ? { background: 'var(--accent)', color: 'var(--bg)' }
-              : { border: '1px solid var(--border)', color: 'var(--txm)' }}
-            onClick={() => setParseMode(v => !v)}
-          >
-            로그 붙여넣기
-          </button>
-        </div>
+        {isAdmin && (
+          <div className="flex gap-2">
+            {/* JSON 내보내기 */}
+            <button className="btn-ghost flex items-center gap-1.5 text-xs" onClick={handleExport}>
+              <Download size={13} /> 내보내기
+            </button>
+            {/* JSON 가져오기 */}
+            <label className="btn-ghost flex items-center gap-1.5 text-xs cursor-pointer">
+              <Upload size={13} /> 가져오기
+              <input type="file" accept=".json" className="hidden" onChange={handleImport} />
+            </label>
+            {/* 로그 붙여넣기 토글 */}
+            <button
+              className="px-3 py-1.5 rounded-md text-xs font-medium transition-all"
+              style={parseMode
+                ? { background: 'var(--accent)', color: 'var(--bg)' }
+                : { border: '1px solid var(--border)', color: 'var(--txm)' }}
+              onClick={() => setParseMode(v => !v)}
+            >
+              로그 붙여넣기
+            </button>
+          </div>
+        )}
       </div>
 
       {/* 세션 정보 */}
@@ -222,9 +226,11 @@ export default function TrpgSession() {
             <Users size={15} style={{ color: 'var(--accent)' }} />
             <span className="text-sm font-medium" style={{ color: 'var(--tx)' }}>PL 캐릭터</span>
           </div>
-          <button className="btn-ghost flex items-center gap-1 text-xs" onClick={() => setShowPlForm(v => !v)}>
-            <Plus size={13} /> 추가
-          </button>
+          {isAdmin && (
+            <button className="btn-ghost flex items-center gap-1 text-xs" onClick={() => setShowPlForm(v => !v)}>
+              <Plus size={13} /> 추가
+            </button>
+          )}
         </div>
         {showPlForm && (
           <div className="flex gap-2 mb-3 animate-slide-up">
@@ -246,51 +252,53 @@ export default function TrpgSession() {
               <div key={p.id} className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs" style={{ background: 'var(--bg)', border: '1px solid var(--border)' }}>
                 <span className="font-medium" style={{ color: 'var(--tx)' }}>{p.name}</span>
                 {p.player && <span style={{ color: 'var(--txs)' }}>/ {p.player}</span>}
-                <button className="ml-1" style={{ color: 'var(--txs)' }} onClick={() => removePlChar(p.id)}><X size={12} /></button>
+                {isAdmin && <button className="ml-1" style={{ color: 'var(--txs)' }} onClick={() => removePlChar(p.id)}><X size={12} /></button>}
               </div>
             ))}
           </div>
         )}
       </div>
 
-      {/* 비밀번호 잠금 설정 */}
-      <div className="mb-5 p-4 rounded-xl" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <Lock size={15} style={{ color: session.passwordHash ? 'var(--accent)' : 'var(--txm)' }} />
-            <span className="text-sm font-medium" style={{ color: 'var(--tx)' }}>세션 잠금</span>
+      {/* 비밀번호 잠금 설정 — 관리자만 */}
+      {isAdmin && (
+        <div className="mb-5 p-4 rounded-xl" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Lock size={15} style={{ color: session.passwordHash ? 'var(--accent)' : 'var(--txm)' }} />
+              <span className="text-sm font-medium" style={{ color: 'var(--tx)' }}>세션 잠금</span>
+              {session.passwordHash && (
+                <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'color-mix(in srgb, var(--accent) 15%, transparent)', color: 'var(--accent)' }}>설정됨</span>
+              )}
+            </div>
             {session.passwordHash && (
-              <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'color-mix(in srgb, var(--accent) 15%, transparent)', color: 'var(--accent)' }}>설정됨</span>
+              <button className="btn-ghost flex items-center gap-1 text-xs" onClick={removePw}><X size={12} /> 잠금 해제</button>
             )}
           </div>
-          {session.passwordHash && (
-            <button className="btn-ghost flex items-center gap-1 text-xs" onClick={removePw}><X size={12} /> 잠금 해제</button>
-          )}
+          <div className="flex gap-2">
+            <input
+              type={showPw ? 'text' : 'password'}
+              className="input flex-1"
+              placeholder={session.passwordHash ? '새 비밀번호로 변경' : '비밀번호 설정'}
+              value={pwInput}
+              onChange={e => setPwInput(e.target.value)}
+            />
+            <input
+              type={showPw ? 'text' : 'password'}
+              className="input flex-1"
+              placeholder="비밀번호 확인"
+              value={pwConfirm}
+              onChange={e => setPwConfirm(e.target.value)}
+            />
+            <button className="btn-ghost" onClick={() => setShowPw(v => !v)}>
+              {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
+            <button className="btn-accent flex items-center gap-1 text-xs px-3" onClick={savePw}>
+              {pwSuccess ? <Check size={14} /> : <Lock size={14} />}
+              {pwSuccess ? '저장됨' : '저장'}
+            </button>
+          </div>
         </div>
-        <div className="flex gap-2">
-          <input
-            type={showPw ? 'text' : 'password'}
-            className="input flex-1"
-            placeholder={session.passwordHash ? '새 비밀번호로 변경' : '비밀번호 설정'}
-            value={pwInput}
-            onChange={e => setPwInput(e.target.value)}
-          />
-          <input
-            type={showPw ? 'text' : 'password'}
-            className="input flex-1"
-            placeholder="비밀번호 확인"
-            value={pwConfirm}
-            onChange={e => setPwConfirm(e.target.value)}
-          />
-          <button className="btn-ghost" onClick={() => setShowPw(v => !v)}>
-            {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
-          </button>
-          <button className="btn-accent flex items-center gap-1 text-xs px-3" onClick={savePw}>
-            {pwSuccess ? <Check size={14} /> : <Lock size={14} />}
-            {pwSuccess ? '저장됨' : '저장'}
-          </button>
-        </div>
-      </div>
+      )}
 
       {/* CCFOLIA 로그 붙여넣기 영역 */}
       {parseMode && (

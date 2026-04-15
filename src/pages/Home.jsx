@@ -20,10 +20,10 @@ const WIDGET_MAP = {
   bgm:           BgmWidget,
 }
 
-// 데스크톱 3열 배치 순서
-const LEFT_COL   = ['mainVisual', 'calendar', 'miniGallery']
+// 데스크톱 3열 배치 순서 (목업 기준)
+const LEFT_COL   = ['profile', 'bgm']
 const CENTER_COL = ['archive', 'trpg']
-const RIGHT_COL  = ['characterCard', 'profile', 'bgm']
+const RIGHT_COL  = ['characterCard', 'calendar']
 
 function Widget({ id }) {
   const W = WIDGET_MAP[id]

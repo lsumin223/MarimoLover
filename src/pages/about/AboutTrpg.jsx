@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Edit2, ChevronDown, ChevronUp } from 'lucide-react'
+import { useIsAdmin } from '../../store/useAdminStore'
 
 // ── 플레이 성향 통합 카테고리 ────────────────────────────────
 const STYLE_CATS = [
@@ -233,6 +234,7 @@ function LatentTable({ ratings, onRate, editMode }) {
 
 // ── 메인 섹션 ─────────────────────────────────────────────────
 export default function AboutTrpg({ otaku, updateOtaku }) {
+  const isAdmin = useIsAdmin()
   const [editMode, setEditMode] = useState(false)
   const [collapsed, setCollapsed] = useState(true)
 
@@ -264,10 +266,12 @@ export default function AboutTrpg({ otaku, updateOtaku }) {
           <button className="btn-ghost flex items-center gap-1 text-xs" onClick={() => setCollapsed(v => !v)}>
             {collapsed ? <ChevronDown size={13} /> : <ChevronUp size={13} />}
           </button>
-          <button className="btn-ghost flex items-center gap-1 text-xs"
-            onClick={() => { setEditMode(v => !v); setCollapsed(false) }}>
-            <Edit2 size={12} /> {editMode ? '완료' : '편집'}
-          </button>
+          {isAdmin && (
+            <button className="btn-ghost flex items-center gap-1 text-xs"
+              onClick={() => { setEditMode(v => !v); setCollapsed(false) }}>
+              <Edit2 size={12} /> {editMode ? '완료' : '편집'}
+            </button>
+          )}
         </div>
       </div>
 
