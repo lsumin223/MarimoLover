@@ -409,66 +409,96 @@ export default function Characters() {
   )
 }
 
-// 캐릭터 카드 컴포넌트
+// 캐릭터 카드 컴포넌트 — 포트레이트 카드 스타일
 function CharCard({ char, characters, isAdmin, onEdit, onDelete, onClick }) {
+  const [imgSrc, setImgSrc] = useState(null)
   const [hovered, setHovered] = useState(false)
-  const getName = (id) => characters.find(c => c.id === id)?.name || '?'
-  const getThumb = (id) => characters.find(c => c.id === id)?.thumbnailImageId || null
 
-  const typeBadge = { individual: '개인', pair: '페어', group: '그룹' }[char.type]
+  useEffect(() => {
+    if (char.thumbnailImageId) getImage(char.thumbnailImageId).then(setImgSrc)
+    else setImgSrc(null)
+  }, [char.thumbnailImageId])
+
+  const getName = (id) => characters.find(c => c.id === id)?.name || '?'
+  const getCharById = (id) => characters.find(c => c.id === id)
+
+  const title = char.type === 'individual' ? char.name
+    : char.type === 'pair' ? `${getName(char.characterA)} × ${getName(char.characterB)}`
+    : char.groupName
+  const desc = char.type === 'individual' ? char.bio : char.description
+  const colors = char.colors || []
   const typeColor = { individual: 'var(--accent)', pair: 'var(--accent2)', group: 'var(--txm)' }[char.type]
+  const typeBadge = { individual: '개인', pair: '페어', group: '그룹' }[char.type]
 
   return (
     <div
-      className="card p-4 cursor-pointer relative"
+      className="rounded-xl overflow-hidden cursor-pointer relative"
+      style={{ border: '1px solid var(--border)', background: 'var(--surface)' }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       onClick={onClick}
     >
-      {/* 호버 시 편집/삭제 버튼 — 관리자만 */}
+      {/* 헤더: 타입 배지 + 이름 + 색상 스와치 */}
+      <div className="px-3 pt-2.5 pb-2" style={{ borderBottom: '1px solid var(--border)' }}>
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0">
+            <span className="text-xs font-medium block mb-0.5" style={{ color: typeColor }}>{typeBadge}</span>
+            <span className="text-sm font-bold block truncate" style={{ color: 'var(--tx)' }}>{title}</span>
+          </div>
+          {colors.length > 0 && (
+            <div className="flex gap-1 shrink-0 pt-1">
+              {colors.slice(0, 4).map((c, i) => (
+                <div key={i} title={c.label} className="w-3 h-3 rounded-full"
+                  style={{ background: c.hex, boxShadow: '0 0 0 1.5px rgba(0,0,0,0.12)' }} />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* 이미지 영역 (세로 3:4 비율) */}
+      <div className="relative" style={{ paddingTop: '130%' }}>
+        <div className="absolute inset-0">
+          {imgSrc ? (
+            <img src={imgSrc} alt={title} className="w-full h-full object-cover" />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center" style={{ background: 'var(--elevated)' }}>
+              {char.type === 'pair' ? (
+                <div className="flex items-end" style={{ gap: 0 }}>
+                  <div style={{ marginRight: -14, zIndex: 1 }}>
+                    <CharThumb imageId={getCharById(char.characterA)?.thumbnailImageId} name={getName(char.characterA)} size={56} />
+                  </div>
+                  <CharThumb imageId={getCharById(char.characterB)?.thumbnailImageId} name={getName(char.characterB)} size={56} />
+                </div>
+              ) : char.type === 'group' ? (
+                <div className="flex flex-wrap gap-1.5 justify-center p-4">
+                  {(char.members || []).slice(0, 6).map(mid => {
+                    const m = getCharById(mid)
+                    return <CharThumb key={mid} imageId={m?.thumbnailImageId} name={m?.name} size={40} />
+                  })}
+                </div>
+              ) : (
+                <span style={{ fontSize: 40, fontWeight: 'bold', color: 'var(--border)' }}>{title?.[0] || '?'}</span>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* 푸터: 설명 */}
+      <div className="px-3 py-2.5" style={{ borderTop: '1px solid var(--border)', minHeight: 38 }}>
+        {desc
+          ? <p className="text-xs line-clamp-2" style={{ color: 'var(--txm)' }}>{desc}</p>
+          : <span className="text-xs" style={{ color: 'var(--txs)' }}>—</span>}
+      </div>
+
+      {/* 관리자 편집/삭제 (호버) */}
       {isAdmin && hovered && (
-        <div className="absolute top-2 right-2 flex gap-1" onClick={e => e.stopPropagation()}>
-          <button className="w-7 h-7 rounded flex items-center justify-center transition-colors" style={{ background: 'var(--elevated)', color: 'var(--txm)' }} onClick={onEdit}><Edit2 size={13} /></button>
-          <button className="w-7 h-7 rounded flex items-center justify-center transition-colors" style={{ background: 'var(--elevated)', color: '#f87171' }} onClick={onDelete}><Trash2 size={13} /></button>
-        </div>
-      )}
-
-      {char.type === 'individual' && (
-        <div className="flex flex-col items-center text-center gap-2">
-          <CharThumb imageId={char.thumbnailImageId} name={char.name} size={56} />
-          <div>
-            <div className="font-bold text-sm" style={{ color: 'var(--tx)' }}>{char.name}</div>
-            {char.bio && <div className="text-xs mt-1 line-clamp-2" style={{ color: 'var(--txs)' }}>{char.bio}</div>}
-          </div>
-          <span className="tag text-xs" style={{ color: typeColor, background: `color-mix(in srgb, ${typeColor} 12%, transparent)`, border: `1px solid color-mix(in srgb, ${typeColor} 25%, transparent)` }}>{typeBadge}</span>
-        </div>
-      )}
-
-      {char.type === 'pair' && (
-        <div className="flex flex-col items-center text-center gap-2">
-          <div className="flex -space-x-3">
-            <CharThumb imageId={getThumb(char.characterA)} name={getName(char.characterA)} size={44} />
-            <CharThumb imageId={getThumb(char.characterB)} name={getName(char.characterB)} size={44} />
-          </div>
-          <div>
-            <div className="font-bold text-sm" style={{ color: 'var(--tx)' }}>{getName(char.characterA)} × {getName(char.characterB)}</div>
-            {char.description && <div className="text-xs mt-1 line-clamp-2" style={{ color: 'var(--txs)' }}>{char.description}</div>}
-          </div>
-          <span className="tag" style={{ color: typeColor, background: `color-mix(in srgb, ${typeColor} 12%, transparent)`, border: `1px solid color-mix(in srgb, ${typeColor} 25%, transparent)` }}>{typeBadge}</span>
-        </div>
-      )}
-
-      {char.type === 'group' && (
-        <div className="flex flex-col items-center text-center gap-2">
-          <div className="flex -space-x-2">
-            {char.members?.slice(0, 3).map(mid => <CharThumb key={mid} imageId={getThumb(mid)} name={getName(mid)} size={36} />)}
-            {(char.members?.length || 0) > 3 && <div className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold" style={{ background: 'var(--elevated)', color: 'var(--txm)', border: '2px solid var(--border)' }}>+{char.members.length - 3}</div>}
-          </div>
-          <div>
-            <div className="font-bold text-sm" style={{ color: 'var(--tx)' }}>{char.groupName}</div>
-            <div className="text-xs mt-0.5" style={{ color: 'var(--txm)' }}>{char.members?.length || 0}명</div>
-          </div>
-          <span className="tag" style={{ color: typeColor, background: `color-mix(in srgb, ${typeColor} 12%, transparent)`, border: `1px solid color-mix(in srgb, ${typeColor} 25%, transparent)` }}>{typeBadge}</span>
+        <div className="absolute top-9 right-2 flex gap-1 z-10" onClick={e => e.stopPropagation()}>
+          <button className="w-7 h-7 rounded flex items-center justify-center"
+            style={{ background: 'rgba(0,0,0,0.6)', color: 'white' }} onClick={onEdit}><Edit2 size={13} /></button>
+          <button className="w-7 h-7 rounded flex items-center justify-center"
+            style={{ background: 'rgba(220,38,38,0.8)', color: 'white' }} onClick={onDelete}><Trash2 size={13} /></button>
         </div>
       )}
     </div>
