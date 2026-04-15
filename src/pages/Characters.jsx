@@ -505,28 +505,31 @@ function CharCard({ char, characters, isAdmin, onEdit, onDelete, onClick }) {
   )
 }
 
-// 전신/두상 이미지 표시 컴포넌트
-function CharDetailImages({ fullBodyId, headId }) {
+// 캐릭터 아트 패널 — 상세 모달 좌측에 전신/두상 이미지 표시
+function CharArtPanel({ fullBodyId, headId, thumbId }) {
   const [fullSrc, setFullSrc] = useState(null)
   const [headSrc, setHeadSrc] = useState(null)
-  const [zoom, setZoom] = useState(null) // src string
+  const [thumbSrc, setThumbSrc] = useState(null)
+  const [zoom, setZoom] = useState(null)
 
   useEffect(() => { if (fullBodyId) getImage(fullBodyId).then(setFullSrc) }, [fullBodyId])
   useEffect(() => { if (headId) getImage(headId).then(setHeadSrc) }, [headId])
+  useEffect(() => { if (thumbId) getImage(thumbId).then(setThumbSrc) }, [thumbId])
+
+  const mainImg = fullSrc || thumbSrc
+  if (!mainImg && !headSrc) return null
 
   return (
     <>
-      <div className="flex gap-2">
-        {fullSrc && (
-          <div className="cursor-pointer rounded-lg overflow-hidden" style={{ width: 120, flexShrink: 0, border: '1px solid var(--border)' }} onClick={() => setZoom(fullSrc)}>
-            <img src={fullSrc} alt="전신" className="w-full object-cover" style={{ maxHeight: 200, objectPosition: 'top' }} />
-            <div className="text-center text-xs py-0.5" style={{ color: 'var(--txs)', background: 'var(--elevated)' }}>전신</div>
+      <div className="flex flex-col gap-2 shrink-0" style={{ width: 130 }}>
+        {mainImg && (
+          <div className="rounded-lg overflow-hidden cursor-pointer" style={{ border: '1px solid var(--border)' }} onClick={() => setZoom(mainImg)}>
+            <img src={mainImg} alt="" className="w-full object-cover" style={{ maxHeight: 230, objectPosition: 'top' }} />
           </div>
         )}
         {headSrc && (
-          <div className="cursor-pointer rounded-lg overflow-hidden" style={{ width: 120, flexShrink: 0, border: '1px solid var(--border)' }} onClick={() => setZoom(headSrc)}>
-            <img src={headSrc} alt="두상" className="w-full object-cover" style={{ maxHeight: 200, objectPosition: 'top' }} />
-            <div className="text-center text-xs py-0.5" style={{ color: 'var(--txs)', background: 'var(--elevated)' }}>두상</div>
+          <div className="rounded-lg overflow-hidden cursor-pointer" style={{ border: '1px solid var(--border)' }} onClick={() => setZoom(headSrc)}>
+            <img src={headSrc} alt="" className="w-full object-cover" style={{ maxHeight: 110, objectPosition: 'top' }} />
           </div>
         )}
       </div>
@@ -573,39 +576,54 @@ function CharDetailModal({ char, characters, posts, writings, isAdmin, getCharLo
       {/* 개인 — 프로필 */}
       {activeTab === 'profile' && char.type === 'individual' && (
         <div className="space-y-4">
-          {/* 상단: 썸네일 + 이름 + 기본 정보 */}
+          {/* 상단: 아트 패널(좌) + 정보(우) */}
           <div className="flex gap-4">
-            <CharThumb imageId={char.thumbnailImageId} name={char.name} size={72} />
-            <div className="flex-1">
-              <div className="text-lg font-bold mb-0.5" style={{ color: 'var(--tx)' }}>{char.name}</div>
-              {char.bio && <p className="text-sm mb-2" style={{ color: 'var(--txm)' }}>{char.bio}</p>}
+            <CharArtPanel fullBodyId={char.fullBodyImageId} headId={char.headImageId} thumbId={char.thumbnailImageId} />
+            <div className="flex-1 space-y-3 min-w-0">
+              <div>
+                <div className="text-lg font-bold" style={{ color: 'var(--tx)' }}>{char.name}</div>
+                {char.bio && <p className="text-sm mt-1" style={{ color: 'var(--txm)' }}>{char.bio}</p>}
+              </div>
+              {/* 색상 스와치 */}
+              {(char.colors || []).length > 0 && (
+                <div className="space-y-1.5 pt-2" style={{ borderTop: '1px solid var(--border)' }}>
+                  {char.colors.map((c, i) => (
+                    <div key={i} className="flex items-center gap-2">
+                      <div className="w-4 h-4 rounded-full shrink-0"
+                        style={{ background: c.hex, boxShadow: '0 0 0 1px rgba(0,0,0,0.15)' }} />
+                      <span className="text-xs font-semibold uppercase tracking-wide"
+                        style={{ color: 'var(--txm)', minWidth: 44 }}>{c.label}</span>
+                      <span className="text-xs font-mono" style={{ color: 'var(--txs)' }}>{c.hex}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {/* 프로필 필드 */}
               {(char.profileFields || []).length > 0 && (
-                <div className="grid grid-cols-2 gap-1.5">
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 pt-2" style={{ borderTop: '1px solid var(--border)' }}>
                   {char.profileFields.map((pf) => (
                     <div key={pf.id} className="text-xs">
                       <span style={{ color: 'var(--txs)' }}>{pf.label} </span>
-                      <span style={{ color: 'var(--tx)' }}>{pf.value}</span>
+                      <span className="font-medium" style={{ color: 'var(--tx)' }}>{pf.value}</span>
                     </div>
                   ))}
                 </div>
               )}
             </div>
           </div>
-          {/* 전신/두상 이미지 */}
-          {(char.fullBodyImageId || char.headImageId) && (
-            <CharDetailImages fullBodyId={char.fullBodyImageId} headId={char.headImageId} />
-          )}
           {/* 성격 */}
           {char.personality && (
-            <div>
-              <div className="text-xs font-medium mb-1" style={{ color: 'var(--txm)', borderLeft: '2px solid var(--accent)', paddingLeft: 6 }}>성격</div>
+            <div className="rounded-lg p-3" style={{ background: 'var(--elevated)' }}>
+              <div className="text-xs font-bold uppercase tracking-wide mb-1.5"
+                style={{ color: 'var(--accent)', borderLeft: '2px solid var(--accent)', paddingLeft: 6 }}>성격</div>
               <p className="text-sm" style={{ color: 'var(--tx)', whiteSpace: 'pre-wrap' }}>{char.personality}</p>
             </div>
           )}
           {/* 특징 */}
           {char.traits && (
-            <div>
-              <div className="text-xs font-medium mb-1" style={{ color: 'var(--txm)', borderLeft: '2px solid var(--accent2)', paddingLeft: 6 }}>특징</div>
+            <div className="rounded-lg p-3" style={{ background: 'var(--elevated)' }}>
+              <div className="text-xs font-bold uppercase tracking-wide mb-1.5"
+                style={{ color: 'var(--accent2)', borderLeft: '2px solid var(--accent2)', paddingLeft: 6 }}>특징</div>
               <p className="text-sm" style={{ color: 'var(--tx)', whiteSpace: 'pre-wrap' }}>{char.traits}</p>
             </div>
           )}
@@ -634,36 +652,63 @@ function CharDetailModal({ char, characters, posts, writings, isAdmin, getCharLo
 
       {/* 페어 관계설명 */}
       {activeTab === 'relation' && char.type === 'pair' && (
-        <div>
-          <div className="flex items-center gap-4 mb-4">
-            <div className="flex items-center gap-2">
-              <CharThumb imageId={getThumb(char.characterA)} name={getName(char.characterA)} size={48} />
-              <span className="font-bold" style={{ color: 'var(--tx)' }}>{getName(char.characterA)}</span>
+        <div className="space-y-4">
+          <div className="flex items-center gap-6">
+            <div className="flex flex-col items-center gap-1.5 cursor-pointer" onClick={() => onNavigateChar(char.characterA)}>
+              <CharThumb imageId={getThumb(char.characterA)} name={getName(char.characterA)} size={56} />
+              <span className="text-sm font-bold" style={{ color: 'var(--tx)' }}>{getName(char.characterA)}</span>
             </div>
-            <span style={{ color: 'var(--txm)' }}>×</span>
-            <div className="flex items-center gap-2">
-              <CharThumb imageId={getThumb(char.characterB)} name={getName(char.characterB)} size={48} />
-              <span className="font-bold" style={{ color: 'var(--tx)' }}>{getName(char.characterB)}</span>
+            <span className="text-2xl" style={{ color: 'var(--txs)' }}>×</span>
+            <div className="flex flex-col items-center gap-1.5 cursor-pointer" onClick={() => onNavigateChar(char.characterB)}>
+              <CharThumb imageId={getThumb(char.characterB)} name={getName(char.characterB)} size={56} />
+              <span className="text-sm font-bold" style={{ color: 'var(--tx)' }}>{getName(char.characterB)}</span>
             </div>
           </div>
-          <p className="text-sm" style={{ color: 'var(--tx)' }}>{char.description}</p>
+          {(char.colors || []).length > 0 && (
+            <div className="flex gap-4 flex-wrap">
+              {char.colors.map((c, i) => (
+                <div key={i} className="flex items-center gap-1.5">
+                  <div className="w-4 h-4 rounded-full" style={{ background: c.hex, boxShadow: '0 0 0 1px rgba(0,0,0,0.15)' }} />
+                  <span className="text-xs font-semibold" style={{ color: 'var(--txm)' }}>{c.label}</span>
+                </div>
+              ))}
+            </div>
+          )}
+          {char.description && (
+            <div className="rounded-lg p-3" style={{ background: 'var(--elevated)' }}>
+              <p className="text-sm" style={{ color: 'var(--tx)', whiteSpace: 'pre-wrap' }}>{char.description}</p>
+            </div>
+          )}
         </div>
       )}
 
       {/* 그룹 관계설명 */}
       {activeTab === 'relation' && char.type === 'group' && (
-        <p className="text-sm" style={{ color: 'var(--tx)' }}>{char.description}</p>
+        <div className="space-y-3">
+          {(char.colors || []).length > 0 && (
+            <div className="flex gap-4 flex-wrap">
+              {char.colors.map((c, i) => (
+                <div key={i} className="flex items-center gap-1.5">
+                  <div className="w-4 h-4 rounded-full" style={{ background: c.hex, boxShadow: '0 0 0 1px rgba(0,0,0,0.15)' }} />
+                  <span className="text-xs font-semibold" style={{ color: 'var(--txm)' }}>{c.label}</span>
+                </div>
+              ))}
+            </div>
+          )}
+          {char.description && <p className="text-sm" style={{ color: 'var(--tx)', whiteSpace: 'pre-wrap' }}>{char.description}</p>}
+        </div>
       )}
 
       {/* 그룹 멤버 */}
       {activeTab === 'members' && (
-        <div className="flex flex-wrap gap-3">
-          {char.members?.map(mid => {
+        <div className="grid grid-cols-3 gap-3">
+          {(char.members || []).map(mid => {
             const m = characters.find(c => c.id === mid)
             return m ? (
-              <div key={mid} className="flex flex-col items-center gap-1">
+              <div key={mid} className="flex flex-col items-center gap-1.5 p-3 rounded-lg cursor-pointer"
+                style={{ background: 'var(--elevated)' }} onClick={() => onNavigateChar(mid)}>
                 <CharThumb imageId={m.thumbnailImageId} name={m.name} size={48} />
-                <span className="text-xs" style={{ color: 'var(--tx)' }}>{m.name}</span>
+                <span className="text-xs font-medium text-center" style={{ color: 'var(--tx)' }}>{m.name}</span>
               </div>
             ) : null
           })}
