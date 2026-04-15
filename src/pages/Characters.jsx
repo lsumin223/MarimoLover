@@ -49,10 +49,10 @@ function CharImageUpload({ label, imageId, preview, onChange, circle = false }) 
   )
 }
 
-// 개인 캐릭터 폼 초기값
-const emptyIndividual = { type: 'individual', workId: '', name: '', bio: '', personality: '', traits: '', thumbnailImageId: null, fullBodyImageId: null, headImageId: null, profileFields: [], relations: [], timeline: [] }
-const emptyPair = { type: 'pair', workId: '', characterA: '', characterB: '', thumbnailImageId: null, description: '', timeline: [] }
-const emptyGroup = { type: 'group', workId: '', groupName: '', members: [], thumbnailImageId: null, description: '' }
+// 캐릭터 폼 초기값
+const emptyIndividual = { type: 'individual', workId: '', name: '', bio: '', personality: '', traits: '', thumbnailImageId: null, fullBodyImageId: null, headImageId: null, profileFields: [], relations: [], timeline: [], colors: [] }
+const emptyPair = { type: 'pair', workId: '', characterA: '', characterB: '', thumbnailImageId: null, description: '', timeline: [], colors: [] }
+const emptyGroup = { type: 'group', workId: '', groupName: '', members: [], thumbnailImageId: null, description: '', colors: [] }
 
 export default function Characters() {
   const isAdmin = useIsAdmin()
@@ -591,7 +591,7 @@ function CharDetailModal({ char, characters, posts, writings, isAdmin, getCharLo
             const related = characters.find(c => c.id === r.characterId)
             return (
               <div key={i} className="flex items-start gap-3 p-3 rounded-lg" style={{ background: 'var(--elevated)' }}>
-                <CharThumb imageId={related?.thumbnailId} name={related?.name} size={36} />
+                <CharThumb imageId={related?.thumbnailImageId} name={related?.name} size={36} />
                 <div>
                   <button className="text-sm font-medium hover:underline" style={{ color: 'var(--accent)' }} onClick={() => onNavigateChar(r.characterId)}>{related?.name || '?'}</button>
                   <p className="text-xs mt-0.5" style={{ color: 'var(--txm)' }}>{r.description}</p>
@@ -632,7 +632,7 @@ function CharDetailModal({ char, characters, posts, writings, isAdmin, getCharLo
             const m = characters.find(c => c.id === mid)
             return m ? (
               <div key={mid} className="flex flex-col items-center gap-1">
-                <CharThumb imageId={m.thumbnailId} name={m.name} size={48} />
+                <CharThumb imageId={m.thumbnailImageId} name={m.name} size={48} />
                 <span className="text-xs" style={{ color: 'var(--tx)' }}>{m.name}</span>
               </div>
             ) : null
