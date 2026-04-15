@@ -51,8 +51,8 @@ function CharImageUpload({ label, imageId, preview, onChange, circle = false }) 
 
 // 캐릭터 폼 초기값
 const emptyIndividual = { type: 'individual', workId: '', name: '', bio: '', personality: '', traits: '', thumbnailImageId: null, fullBodyImageId: null, headImageId: null, profileFields: [], relations: [], timeline: [], colors: [] }
-const emptyPair = { type: 'pair', workId: '', characterA: '', characterB: '', thumbnailImageId: null, description: '', timeline: [], colors: [] }
-const emptyGroup = { type: 'group', workId: '', groupName: '', members: [], thumbnailImageId: null, description: '', colors: [] }
+const emptyPair = { type: 'pair', nameA: '', nameB: '', thumbnailImageId: null, description: '', timeline: [], colors: [] }
+const emptyGroup = { type: 'group', groupName: '', memberNames: [], thumbnailImageId: null, description: '', colors: [] }
 
 export default function Characters() {
   const isAdmin = useIsAdmin()
@@ -147,13 +147,14 @@ export default function Characters() {
     }
   }
 
-  // 페어 로그 (두 캐릭터 이름 모두 포함)
-  const getPairLogs = (charIdA, charIdB) => {
-    const nameA = (characters.find(c => c.id === charIdA)?.name || '').toLowerCase()
-    const nameB = (characters.find(c => c.id === charIdB)?.name || '').toLowerCase()
+  // 페어 로그 (두 이름 모두 태그에 포함된 것)
+  const getPairLogs = (nameA, nameB) => {
+    const a = (nameA || '').toLowerCase()
+    const b = (nameB || '').toLowerCase()
+    if (!a || !b) return { gallery: [], writings: [] }
     return {
-      gallery:  posts.filter(p => { const t = (p.tags || []).map(x => x.toLowerCase()); return t.includes(nameA) && t.includes(nameB) }),
-      writings: writings.filter(w => { const t = (w.tags || []).map(x => x.toLowerCase()); return t.includes(nameA) && t.includes(nameB) }),
+      gallery:  posts.filter(p => { const t = (p.tags || []).map(x => x.toLowerCase()); return t.includes(a) && t.includes(b) }),
+      writings: writings.filter(w => { const t = (w.tags || []).map(x => x.toLowerCase()); return t.includes(a) && t.includes(b) }),
     }
   }
 
@@ -324,15 +325,16 @@ export default function Characters() {
                   <CharImageUpload label="" imageId={form.thumbnailImageId} preview={thumbPreview} onChange={handleThumb} />
                 </div>
               </div>
-              {[['characterA', '캐릭터 A'], ['characterB', '캐릭터 B']].map(([k, l]) => (
-                <div key={k}>
-                  <label className="block text-xs font-medium mb-1" style={{ color: 'var(--txm)' }}>{l}</label>
-                  <select className="input" value={form[k] || ''} onChange={e => setForm(f => ({ ...f, [k]: e.target.value }))}>
-                    <option value="">캐릭터 선택</option>
-                    {sameWorkChars().map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                  </select>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium mb-1" style={{ color: 'var(--txm)' }}>캐릭터 A 이름</label>
+                  <input className="input" placeholder="이름 입력" value={form.nameA || ''} onChange={e => setForm(f => ({ ...f, nameA: e.target.value }))} />
                 </div>
-              ))}
+                <div>
+                  <label className="block text-xs font-medium mb-1" style={{ color: 'var(--txm)' }}>캐릭터 B 이름</label>
+                  <input className="input" placeholder="이름 입력" value={form.nameB || ''} onChange={e => setForm(f => ({ ...f, nameB: e.target.value }))} />
+                </div>
+              </div>
               <div>
                 <label className="block text-xs font-medium mb-1" style={{ color: 'var(--txm)' }}>관계 설명</label>
                 <textarea className="textarea" rows={3} value={form.description || ''} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="두 캐릭터의 관계를 설명해주세요" />
@@ -369,15 +371,19 @@ export default function Characters() {
                 <input className="input" value={form.groupName || ''} onChange={e => setForm(f => ({ ...f, groupName: e.target.value }))} placeholder="그룹 이름" />
               </div>
               <div>
-                <label className="block text-xs font-medium mb-2" style={{ color: 'var(--txm)' }}>멤버</label>
-                <div className="space-y-1 max-h-40 overflow-y-auto">
-                  {sameWorkChars().map(c => (
-                    <label key={c.id} className="flex items-center gap-2 cursor-pointer px-2 py-1 rounded hover:bg-elevated">
-                      <input type="checkbox" checked={(form.members || []).includes(c.id)} onChange={e => setForm(f => ({ ...f, members: e.target.checked ? [...(f.members || []), c.id] : (f.members || []).filter(id => id !== c.id) }))} />
-                      <span className="text-sm" style={{ color: 'var(--tx)' }}>{c.name}</span>
-                    </label>
-                  ))}
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-xs font-medium" style={{ color: 'var(--txm)' }}>멤버</label>
+                  <button className="text-xs" style={{ color: 'var(--accent)' }}
+                    onClick={() => setForm(f => ({ ...f, memberNames: [...(f.memberNames || []), ''] }))}>+ 추가</button>
                 </div>
+                {(form.memberNames || []).map((n, i) => (
+                  <div key={i} className="flex gap-2 mb-2">
+                    <input className="input flex-1" placeholder={`멤버 ${i + 1} 이름`} value={n}
+                      onChange={e => setForm(f => { const mn = [...(f.memberNames || [])]; mn[i] = e.target.value; return { ...f, memberNames: mn } })} />
+                    <button onClick={() => setForm(f => ({ ...f, memberNames: (f.memberNames || []).filter((_, j) => j !== i) }))}
+                      style={{ color: 'var(--txs)' }}><X size={14} /></button>
+                  </div>
+                ))}
               </div>
               <div>
                 <label className="block text-xs font-medium mb-1" style={{ color: 'var(--txm)' }}>설명</label>
@@ -461,7 +467,7 @@ function CharCard({ char, characters, isAdmin, onEdit, onDelete, onClick }) {
   const getCharById = (id) => characters.find(c => c.id === id)
 
   const title = char.type === 'individual' ? char.name
-    : char.type === 'pair' ? `${getName(char.characterA)} × ${getName(char.characterB)}`
+    : char.type === 'pair' ? `${char.nameA || '?'} × ${char.nameB || '?'}`
     : char.groupName
   const desc = char.type === 'individual' ? char.bio : char.description
   const colors = char.colors || []
@@ -494,26 +500,27 @@ function CharCard({ char, characters, isAdmin, onEdit, onDelete, onClick }) {
         </div>
       </div>
 
-      {/* 이미지 영역 (세로 3:4 비율) */}
-      <div className="relative" style={{ paddingTop: '130%' }}>
+      {/* 이미지 영역 (가로 4:3 비율) */}
+      <div className="relative" style={{ paddingTop: '75%' }}>
         <div className="absolute inset-0">
           {imgSrc ? (
             <img src={imgSrc} alt={title} className="w-full h-full object-cover" />
           ) : (
             <div className="w-full h-full flex items-center justify-center" style={{ background: 'var(--elevated)' }}>
               {char.type === 'pair' ? (
-                <div className="flex items-end" style={{ gap: 0 }}>
-                  <div style={{ marginRight: -14, zIndex: 1 }}>
-                    <CharThumb imageId={getCharById(char.characterA)?.thumbnailImageId} name={getName(char.characterA)} size={56} />
-                  </div>
-                  <CharThumb imageId={getCharById(char.characterB)?.thumbnailImageId} name={getName(char.characterB)} size={56} />
+                <div className="flex items-center gap-2">
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg"
+                    style={{ background: 'var(--border)', color: 'var(--tx)' }}>{char.nameA?.[0] || '?'}</div>
+                  <span style={{ color: 'var(--txs)' }}>×</span>
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg"
+                    style={{ background: 'var(--border)', color: 'var(--tx)' }}>{char.nameB?.[0] || '?'}</div>
                 </div>
               ) : char.type === 'group' ? (
                 <div className="flex flex-wrap gap-1.5 justify-center p-4">
-                  {(char.members || []).slice(0, 6).map(mid => {
-                    const m = getCharById(mid)
-                    return <CharThumb key={mid} imageId={m?.thumbnailImageId} name={m?.name} size={40} />
-                  })}
+                  {(char.memberNames || []).slice(0, 6).map((n, i) => (
+                    <div key={i} className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm"
+                      style={{ background: 'var(--border)', color: 'var(--tx)' }}>{n?.[0] || '?'}</div>
+                  ))}
                 </div>
               ) : (
                 <span style={{ fontSize: 40, fontWeight: 'bold', color: 'var(--border)' }}>{title?.[0] || '?'}</span>
@@ -592,7 +599,7 @@ function CharDetailModal({ char, characters, posts, writings, isAdmin, getCharLo
     : [['members', '멤버'], ['relation', '관계설명']]
 
   const logs = char.type === 'pair'
-    ? getPairLogs(char.characterA, char.characterB)
+    ? getPairLogs(char.nameA, char.nameB)
     : getCharLogs(char)
 
   return (
@@ -692,14 +699,20 @@ function CharDetailModal({ char, characters, posts, writings, isAdmin, getCharLo
       {activeTab === 'relation' && char.type === 'pair' && (
         <div className="space-y-4">
           <div className="flex items-center gap-6">
-            <div className="flex flex-col items-center gap-1.5 cursor-pointer" onClick={() => onNavigateChar(char.characterA)}>
-              <CharThumb imageId={getThumb(char.characterA)} name={getName(char.characterA)} size={56} />
-              <span className="text-sm font-bold" style={{ color: 'var(--tx)' }}>{getName(char.characterA)}</span>
+            <div className="flex flex-col items-center gap-1.5">
+              <div className="w-14 h-14 rounded-full flex items-center justify-center font-bold text-2xl"
+                style={{ background: 'var(--elevated)', color: 'var(--accent)', border: '2px solid var(--border)' }}>
+                {char.nameA?.[0] || '?'}
+              </div>
+              <span className="text-sm font-bold" style={{ color: 'var(--tx)' }}>{char.nameA || '?'}</span>
             </div>
             <span className="text-2xl" style={{ color: 'var(--txs)' }}>×</span>
-            <div className="flex flex-col items-center gap-1.5 cursor-pointer" onClick={() => onNavigateChar(char.characterB)}>
-              <CharThumb imageId={getThumb(char.characterB)} name={getName(char.characterB)} size={56} />
-              <span className="text-sm font-bold" style={{ color: 'var(--tx)' }}>{getName(char.characterB)}</span>
+            <div className="flex flex-col items-center gap-1.5">
+              <div className="w-14 h-14 rounded-full flex items-center justify-center font-bold text-2xl"
+                style={{ background: 'var(--elevated)', color: 'var(--accent2)', border: '2px solid var(--border)' }}>
+                {char.nameB?.[0] || '?'}
+              </div>
+              <span className="text-sm font-bold" style={{ color: 'var(--tx)' }}>{char.nameB || '?'}</span>
             </div>
           </div>
           {(char.colors || []).length > 0 && (
@@ -740,16 +753,14 @@ function CharDetailModal({ char, characters, posts, writings, isAdmin, getCharLo
       {/* 그룹 멤버 */}
       {activeTab === 'members' && (
         <div className="grid grid-cols-3 gap-3">
-          {(char.members || []).map(mid => {
-            const m = characters.find(c => c.id === mid)
-            return m ? (
-              <div key={mid} className="flex flex-col items-center gap-1.5 p-3 rounded-lg cursor-pointer"
-                style={{ background: 'var(--elevated)' }} onClick={() => onNavigateChar(mid)}>
-                <CharThumb imageId={m.thumbnailImageId} name={m.name} size={48} />
-                <span className="text-xs font-medium text-center" style={{ color: 'var(--tx)' }}>{m.name}</span>
-              </div>
-            ) : null
-          })}
+          {(char.memberNames || []).map((name, i) => (
+            <div key={i} className="flex flex-col items-center gap-1.5 p-3 rounded-lg"
+              style={{ background: 'var(--elevated)' }}>
+              <div className="w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl"
+                style={{ background: 'var(--border)', color: 'var(--tx)' }}>{name?.[0] || '?'}</div>
+              <span className="text-xs font-medium text-center" style={{ color: 'var(--tx)' }}>{name}</span>
+            </div>
+          ))}
         </div>
       )}
 
