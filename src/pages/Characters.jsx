@@ -317,6 +317,13 @@ export default function Characters() {
           {/* 페어 폼 */}
           {formType === 'pair' && (
             <>
+              {/* 썸네일 */}
+              <div>
+                <label className="block text-xs font-medium mb-2" style={{ color: 'var(--txm)' }}>썸네일</label>
+                <div style={{ width: 80 }}>
+                  <CharImageUpload label="" imageId={form.thumbnailImageId} preview={thumbPreview} onChange={handleThumb} />
+                </div>
+              </div>
               {[['characterA', '캐릭터 A'], ['characterB', '캐릭터 B']].map(([k, l]) => (
                 <div key={k}>
                   <label className="block text-xs font-medium mb-1" style={{ color: 'var(--txm)' }}>{l}</label>
@@ -350,6 +357,13 @@ export default function Characters() {
           {/* 다인관계 폼 */}
           {formType === 'group' && (
             <>
+              {/* 썸네일 */}
+              <div>
+                <label className="block text-xs font-medium mb-2" style={{ color: 'var(--txm)' }}>썸네일</label>
+                <div style={{ width: 80 }}>
+                  <CharImageUpload label="" imageId={form.thumbnailImageId} preview={thumbPreview} onChange={handleThumb} />
+                </div>
+              </div>
               <div>
                 <label className="block text-xs font-medium mb-1" style={{ color: 'var(--txm)' }}>그룹명</label>
                 <input className="input" value={form.groupName || ''} onChange={e => setForm(f => ({ ...f, groupName: e.target.value }))} placeholder="그룹 이름" />
@@ -371,6 +385,30 @@ export default function Characters() {
               </div>
             </>
           )}
+
+          {/* 공통: 색상 (최대 4개) */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-medium" style={{ color: 'var(--txm)' }}>색상 (최대 4개)</span>
+              {(form.colors || []).length < 4 && (
+                <button className="text-xs" style={{ color: 'var(--accent)' }}
+                  onClick={() => setForm(f => ({ ...f, colors: [...(f.colors || []), { label: '', hex: '#888888' }] }))}>
+                  + 추가
+                </button>
+              )}
+            </div>
+            {(form.colors || []).map((c, i) => (
+              <div key={i} className="flex gap-2 mb-2 items-center">
+                <input type="color" value={c.hex}
+                  style={{ width: 34, height: 34, padding: 2, borderRadius: 6, border: '1px solid var(--border)', cursor: 'pointer', background: 'transparent' }}
+                  onChange={e => setForm(f => { const colors = [...(f.colors || [])]; colors[i] = { ...colors[i], hex: e.target.value }; return { ...f, colors } })} />
+                <input className="input flex-1" placeholder="HAIR / EYE / 기타" value={c.label}
+                  onChange={e => setForm(f => { const colors = [...(f.colors || [])]; colors[i] = { ...colors[i], label: e.target.value }; return { ...f, colors } })} />
+                <button onClick={() => setForm(f => ({ ...f, colors: (f.colors || []).filter((_, j) => j !== i) }))}
+                  style={{ color: 'var(--txs)' }}><X size={14} /></button>
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className="flex justify-end gap-2 mt-6">
