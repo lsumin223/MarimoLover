@@ -49,10 +49,10 @@ function CharImageUpload({ label, imageId, preview, onChange, circle = false }) 
   )
 }
 
-// 개인 캐릭터 폼 초기값
-const emptyIndividual = { type: 'individual', workId: '', name: '', bio: '', personality: '', traits: '', thumbnailImageId: null, fullBodyImageId: null, headImageId: null, profileFields: [], relations: [], timeline: [] }
-const emptyPair = { type: 'pair', workId: '', characterA: '', characterB: '', thumbnailImageId: null, description: '', timeline: [] }
-const emptyGroup = { type: 'group', workId: '', groupName: '', members: [], thumbnailImageId: null, description: '' }
+// 캐릭터 폼 초기값
+const emptyIndividual = { type: 'individual', workId: '', name: '', bio: '', personality: '', traits: '', thumbnailImageId: null, fullBodyImageId: null, headImageId: null, profileFields: [], relations: [], timeline: [], colors: [] }
+const emptyPair = { type: 'pair', workId: '', characterA: '', characterB: '', thumbnailImageId: null, description: '', timeline: [], colors: [] }
+const emptyGroup = { type: 'group', workId: '', groupName: '', members: [], thumbnailImageId: null, description: '', colors: [] }
 
 export default function Characters() {
   const isAdmin = useIsAdmin()
@@ -317,6 +317,13 @@ export default function Characters() {
           {/* 페어 폼 */}
           {formType === 'pair' && (
             <>
+              {/* 썸네일 */}
+              <div>
+                <label className="block text-xs font-medium mb-2" style={{ color: 'var(--txm)' }}>썸네일</label>
+                <div style={{ width: 80 }}>
+                  <CharImageUpload label="" imageId={form.thumbnailImageId} preview={thumbPreview} onChange={handleThumb} />
+                </div>
+              </div>
               {[['characterA', '캐릭터 A'], ['characterB', '캐릭터 B']].map(([k, l]) => (
                 <div key={k}>
                   <label className="block text-xs font-medium mb-1" style={{ color: 'var(--txm)' }}>{l}</label>
@@ -350,6 +357,13 @@ export default function Characters() {
           {/* 다인관계 폼 */}
           {formType === 'group' && (
             <>
+              {/* 썸네일 */}
+              <div>
+                <label className="block text-xs font-medium mb-2" style={{ color: 'var(--txm)' }}>썸네일</label>
+                <div style={{ width: 80 }}>
+                  <CharImageUpload label="" imageId={form.thumbnailImageId} preview={thumbPreview} onChange={handleThumb} />
+                </div>
+              </div>
               <div>
                 <label className="block text-xs font-medium mb-1" style={{ color: 'var(--txm)' }}>그룹명</label>
                 <input className="input" value={form.groupName || ''} onChange={e => setForm(f => ({ ...f, groupName: e.target.value }))} placeholder="그룹 이름" />
@@ -371,6 +385,30 @@ export default function Characters() {
               </div>
             </>
           )}
+
+          {/* 공통: 색상 (최대 4개) */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-medium" style={{ color: 'var(--txm)' }}>색상 (최대 4개)</span>
+              {(form.colors || []).length < 4 && (
+                <button className="text-xs" style={{ color: 'var(--accent)' }}
+                  onClick={() => setForm(f => ({ ...f, colors: [...(f.colors || []), { label: '', hex: '#888888' }] }))}>
+                  + 추가
+                </button>
+              )}
+            </div>
+            {(form.colors || []).map((c, i) => (
+              <div key={i} className="flex gap-2 mb-2 items-center">
+                <input type="color" value={c.hex}
+                  style={{ width: 34, height: 34, padding: 2, borderRadius: 6, border: '1px solid var(--border)', cursor: 'pointer', background: 'transparent' }}
+                  onChange={e => setForm(f => { const colors = [...(f.colors || [])]; colors[i] = { ...colors[i], hex: e.target.value }; return { ...f, colors } })} />
+                <input className="input flex-1" placeholder="HAIR / EYE / 기타" value={c.label}
+                  onChange={e => setForm(f => { const colors = [...(f.colors || [])]; colors[i] = { ...colors[i], label: e.target.value }; return { ...f, colors } })} />
+                <button onClick={() => setForm(f => ({ ...f, colors: (f.colors || []).filter((_, j) => j !== i) }))}
+                  style={{ color: 'var(--txs)' }}><X size={14} /></button>
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className="flex justify-end gap-2 mt-6">
@@ -409,94 +447,127 @@ export default function Characters() {
   )
 }
 
-// 캐릭터 카드 컴포넌트
+// 캐릭터 카드 컴포넌트 — 포트레이트 카드 스타일
 function CharCard({ char, characters, isAdmin, onEdit, onDelete, onClick }) {
+  const [imgSrc, setImgSrc] = useState(null)
   const [hovered, setHovered] = useState(false)
-  const getName = (id) => characters.find(c => c.id === id)?.name || '?'
-  const getThumb = (id) => characters.find(c => c.id === id)?.thumbnailImageId || null
 
-  const typeBadge = { individual: '개인', pair: '페어', group: '그룹' }[char.type]
+  useEffect(() => {
+    if (char.thumbnailImageId) getImage(char.thumbnailImageId).then(setImgSrc)
+    else setImgSrc(null)
+  }, [char.thumbnailImageId])
+
+  const getName = (id) => characters.find(c => c.id === id)?.name || '?'
+  const getCharById = (id) => characters.find(c => c.id === id)
+
+  const title = char.type === 'individual' ? char.name
+    : char.type === 'pair' ? `${getName(char.characterA)} × ${getName(char.characterB)}`
+    : char.groupName
+  const desc = char.type === 'individual' ? char.bio : char.description
+  const colors = char.colors || []
   const typeColor = { individual: 'var(--accent)', pair: 'var(--accent2)', group: 'var(--txm)' }[char.type]
+  const typeBadge = { individual: '개인', pair: '페어', group: '그룹' }[char.type]
 
   return (
     <div
-      className="card p-4 cursor-pointer relative"
+      className="rounded-xl overflow-hidden cursor-pointer relative"
+      style={{ border: '1px solid var(--border)', background: 'var(--surface)' }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       onClick={onClick}
     >
-      {/* 호버 시 편집/삭제 버튼 — 관리자만 */}
+      {/* 헤더: 타입 배지 + 이름 + 색상 스와치 */}
+      <div className="px-3 pt-2.5 pb-2" style={{ borderBottom: '1px solid var(--border)' }}>
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0">
+            <span className="text-xs font-medium block mb-0.5" style={{ color: typeColor }}>{typeBadge}</span>
+            <span className="text-sm font-bold block truncate" style={{ color: 'var(--tx)' }}>{title}</span>
+          </div>
+          {colors.length > 0 && (
+            <div className="flex gap-1 shrink-0 pt-1">
+              {colors.slice(0, 4).map((c, i) => (
+                <div key={i} title={c.label} className="w-3 h-3 rounded-full"
+                  style={{ background: c.hex, boxShadow: '0 0 0 1.5px rgba(0,0,0,0.12)' }} />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* 이미지 영역 (세로 3:4 비율) */}
+      <div className="relative" style={{ paddingTop: '130%' }}>
+        <div className="absolute inset-0">
+          {imgSrc ? (
+            <img src={imgSrc} alt={title} className="w-full h-full object-cover" />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center" style={{ background: 'var(--elevated)' }}>
+              {char.type === 'pair' ? (
+                <div className="flex items-end" style={{ gap: 0 }}>
+                  <div style={{ marginRight: -14, zIndex: 1 }}>
+                    <CharThumb imageId={getCharById(char.characterA)?.thumbnailImageId} name={getName(char.characterA)} size={56} />
+                  </div>
+                  <CharThumb imageId={getCharById(char.characterB)?.thumbnailImageId} name={getName(char.characterB)} size={56} />
+                </div>
+              ) : char.type === 'group' ? (
+                <div className="flex flex-wrap gap-1.5 justify-center p-4">
+                  {(char.members || []).slice(0, 6).map(mid => {
+                    const m = getCharById(mid)
+                    return <CharThumb key={mid} imageId={m?.thumbnailImageId} name={m?.name} size={40} />
+                  })}
+                </div>
+              ) : (
+                <span style={{ fontSize: 40, fontWeight: 'bold', color: 'var(--border)' }}>{title?.[0] || '?'}</span>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* 푸터: 설명 */}
+      <div className="px-3 py-2.5" style={{ borderTop: '1px solid var(--border)', minHeight: 38 }}>
+        {desc
+          ? <p className="text-xs line-clamp-2" style={{ color: 'var(--txm)' }}>{desc}</p>
+          : <span className="text-xs" style={{ color: 'var(--txs)' }}>—</span>}
+      </div>
+
+      {/* 관리자 편집/삭제 (호버) */}
       {isAdmin && hovered && (
-        <div className="absolute top-2 right-2 flex gap-1" onClick={e => e.stopPropagation()}>
-          <button className="w-7 h-7 rounded flex items-center justify-center transition-colors" style={{ background: 'var(--elevated)', color: 'var(--txm)' }} onClick={onEdit}><Edit2 size={13} /></button>
-          <button className="w-7 h-7 rounded flex items-center justify-center transition-colors" style={{ background: 'var(--elevated)', color: '#f87171' }} onClick={onDelete}><Trash2 size={13} /></button>
-        </div>
-      )}
-
-      {char.type === 'individual' && (
-        <div className="flex flex-col items-center text-center gap-2">
-          <CharThumb imageId={char.thumbnailImageId} name={char.name} size={56} />
-          <div>
-            <div className="font-bold text-sm" style={{ color: 'var(--tx)' }}>{char.name}</div>
-            {char.bio && <div className="text-xs mt-1 line-clamp-2" style={{ color: 'var(--txs)' }}>{char.bio}</div>}
-          </div>
-          <span className="tag text-xs" style={{ color: typeColor, background: `color-mix(in srgb, ${typeColor} 12%, transparent)`, border: `1px solid color-mix(in srgb, ${typeColor} 25%, transparent)` }}>{typeBadge}</span>
-        </div>
-      )}
-
-      {char.type === 'pair' && (
-        <div className="flex flex-col items-center text-center gap-2">
-          <div className="flex -space-x-3">
-            <CharThumb imageId={getThumb(char.characterA)} name={getName(char.characterA)} size={44} />
-            <CharThumb imageId={getThumb(char.characterB)} name={getName(char.characterB)} size={44} />
-          </div>
-          <div>
-            <div className="font-bold text-sm" style={{ color: 'var(--tx)' }}>{getName(char.characterA)} × {getName(char.characterB)}</div>
-            {char.description && <div className="text-xs mt-1 line-clamp-2" style={{ color: 'var(--txs)' }}>{char.description}</div>}
-          </div>
-          <span className="tag" style={{ color: typeColor, background: `color-mix(in srgb, ${typeColor} 12%, transparent)`, border: `1px solid color-mix(in srgb, ${typeColor} 25%, transparent)` }}>{typeBadge}</span>
-        </div>
-      )}
-
-      {char.type === 'group' && (
-        <div className="flex flex-col items-center text-center gap-2">
-          <div className="flex -space-x-2">
-            {char.members?.slice(0, 3).map(mid => <CharThumb key={mid} imageId={getThumb(mid)} name={getName(mid)} size={36} />)}
-            {(char.members?.length || 0) > 3 && <div className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold" style={{ background: 'var(--elevated)', color: 'var(--txm)', border: '2px solid var(--border)' }}>+{char.members.length - 3}</div>}
-          </div>
-          <div>
-            <div className="font-bold text-sm" style={{ color: 'var(--tx)' }}>{char.groupName}</div>
-            <div className="text-xs mt-0.5" style={{ color: 'var(--txm)' }}>{char.members?.length || 0}명</div>
-          </div>
-          <span className="tag" style={{ color: typeColor, background: `color-mix(in srgb, ${typeColor} 12%, transparent)`, border: `1px solid color-mix(in srgb, ${typeColor} 25%, transparent)` }}>{typeBadge}</span>
+        <div className="absolute top-9 right-2 flex gap-1 z-10" onClick={e => e.stopPropagation()}>
+          <button className="w-7 h-7 rounded flex items-center justify-center"
+            style={{ background: 'rgba(0,0,0,0.6)', color: 'white' }} onClick={onEdit}><Edit2 size={13} /></button>
+          <button className="w-7 h-7 rounded flex items-center justify-center"
+            style={{ background: 'rgba(220,38,38,0.8)', color: 'white' }} onClick={onDelete}><Trash2 size={13} /></button>
         </div>
       )}
     </div>
   )
 }
 
-// 전신/두상 이미지 표시 컴포넌트
-function CharDetailImages({ fullBodyId, headId }) {
+// 캐릭터 아트 패널 — 상세 모달 좌측에 전신/두상 이미지 표시
+function CharArtPanel({ fullBodyId, headId, thumbId }) {
   const [fullSrc, setFullSrc] = useState(null)
   const [headSrc, setHeadSrc] = useState(null)
-  const [zoom, setZoom] = useState(null) // src string
+  const [thumbSrc, setThumbSrc] = useState(null)
+  const [zoom, setZoom] = useState(null)
 
   useEffect(() => { if (fullBodyId) getImage(fullBodyId).then(setFullSrc) }, [fullBodyId])
   useEffect(() => { if (headId) getImage(headId).then(setHeadSrc) }, [headId])
+  useEffect(() => { if (thumbId) getImage(thumbId).then(setThumbSrc) }, [thumbId])
+
+  const mainImg = fullSrc || thumbSrc
+  if (!mainImg && !headSrc) return null
 
   return (
     <>
-      <div className="flex gap-2">
-        {fullSrc && (
-          <div className="cursor-pointer rounded-lg overflow-hidden" style={{ width: 120, flexShrink: 0, border: '1px solid var(--border)' }} onClick={() => setZoom(fullSrc)}>
-            <img src={fullSrc} alt="전신" className="w-full object-cover" style={{ maxHeight: 200, objectPosition: 'top' }} />
-            <div className="text-center text-xs py-0.5" style={{ color: 'var(--txs)', background: 'var(--elevated)' }}>전신</div>
+      <div className="flex flex-col gap-2 shrink-0" style={{ width: 130 }}>
+        {mainImg && (
+          <div className="rounded-lg overflow-hidden cursor-pointer" style={{ border: '1px solid var(--border)' }} onClick={() => setZoom(mainImg)}>
+            <img src={mainImg} alt="" className="w-full object-cover" style={{ maxHeight: 230, objectPosition: 'top' }} />
           </div>
         )}
         {headSrc && (
-          <div className="cursor-pointer rounded-lg overflow-hidden" style={{ width: 120, flexShrink: 0, border: '1px solid var(--border)' }} onClick={() => setZoom(headSrc)}>
-            <img src={headSrc} alt="두상" className="w-full object-cover" style={{ maxHeight: 200, objectPosition: 'top' }} />
-            <div className="text-center text-xs py-0.5" style={{ color: 'var(--txs)', background: 'var(--elevated)' }}>두상</div>
+          <div className="rounded-lg overflow-hidden cursor-pointer" style={{ border: '1px solid var(--border)' }} onClick={() => setZoom(headSrc)}>
+            <img src={headSrc} alt="" className="w-full object-cover" style={{ maxHeight: 110, objectPosition: 'top' }} />
           </div>
         )}
       </div>
@@ -543,39 +614,54 @@ function CharDetailModal({ char, characters, posts, writings, isAdmin, getCharLo
       {/* 개인 — 프로필 */}
       {activeTab === 'profile' && char.type === 'individual' && (
         <div className="space-y-4">
-          {/* 상단: 썸네일 + 이름 + 기본 정보 */}
+          {/* 상단: 아트 패널(좌) + 정보(우) */}
           <div className="flex gap-4">
-            <CharThumb imageId={char.thumbnailImageId} name={char.name} size={72} />
-            <div className="flex-1">
-              <div className="text-lg font-bold mb-0.5" style={{ color: 'var(--tx)' }}>{char.name}</div>
-              {char.bio && <p className="text-sm mb-2" style={{ color: 'var(--txm)' }}>{char.bio}</p>}
+            <CharArtPanel fullBodyId={char.fullBodyImageId} headId={char.headImageId} thumbId={char.thumbnailImageId} />
+            <div className="flex-1 space-y-3 min-w-0">
+              <div>
+                <div className="text-lg font-bold" style={{ color: 'var(--tx)' }}>{char.name}</div>
+                {char.bio && <p className="text-sm mt-1" style={{ color: 'var(--txm)' }}>{char.bio}</p>}
+              </div>
+              {/* 색상 스와치 */}
+              {(char.colors || []).length > 0 && (
+                <div className="space-y-1.5 pt-2" style={{ borderTop: '1px solid var(--border)' }}>
+                  {char.colors.map((c, i) => (
+                    <div key={i} className="flex items-center gap-2">
+                      <div className="w-4 h-4 rounded-full shrink-0"
+                        style={{ background: c.hex, boxShadow: '0 0 0 1px rgba(0,0,0,0.15)' }} />
+                      <span className="text-xs font-semibold uppercase tracking-wide"
+                        style={{ color: 'var(--txm)', minWidth: 44 }}>{c.label}</span>
+                      <span className="text-xs font-mono" style={{ color: 'var(--txs)' }}>{c.hex}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {/* 프로필 필드 */}
               {(char.profileFields || []).length > 0 && (
-                <div className="grid grid-cols-2 gap-1.5">
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 pt-2" style={{ borderTop: '1px solid var(--border)' }}>
                   {char.profileFields.map((pf) => (
                     <div key={pf.id} className="text-xs">
                       <span style={{ color: 'var(--txs)' }}>{pf.label} </span>
-                      <span style={{ color: 'var(--tx)' }}>{pf.value}</span>
+                      <span className="font-medium" style={{ color: 'var(--tx)' }}>{pf.value}</span>
                     </div>
                   ))}
                 </div>
               )}
             </div>
           </div>
-          {/* 전신/두상 이미지 */}
-          {(char.fullBodyImageId || char.headImageId) && (
-            <CharDetailImages fullBodyId={char.fullBodyImageId} headId={char.headImageId} />
-          )}
           {/* 성격 */}
           {char.personality && (
-            <div>
-              <div className="text-xs font-medium mb-1" style={{ color: 'var(--txm)', borderLeft: '2px solid var(--accent)', paddingLeft: 6 }}>성격</div>
+            <div className="rounded-lg p-3" style={{ background: 'var(--elevated)' }}>
+              <div className="text-xs font-bold uppercase tracking-wide mb-1.5"
+                style={{ color: 'var(--accent)', borderLeft: '2px solid var(--accent)', paddingLeft: 6 }}>성격</div>
               <p className="text-sm" style={{ color: 'var(--tx)', whiteSpace: 'pre-wrap' }}>{char.personality}</p>
             </div>
           )}
           {/* 특징 */}
           {char.traits && (
-            <div>
-              <div className="text-xs font-medium mb-1" style={{ color: 'var(--txm)', borderLeft: '2px solid var(--accent2)', paddingLeft: 6 }}>특징</div>
+            <div className="rounded-lg p-3" style={{ background: 'var(--elevated)' }}>
+              <div className="text-xs font-bold uppercase tracking-wide mb-1.5"
+                style={{ color: 'var(--accent2)', borderLeft: '2px solid var(--accent2)', paddingLeft: 6 }}>특징</div>
               <p className="text-sm" style={{ color: 'var(--tx)', whiteSpace: 'pre-wrap' }}>{char.traits}</p>
             </div>
           )}
@@ -591,7 +677,7 @@ function CharDetailModal({ char, characters, posts, writings, isAdmin, getCharLo
             const related = characters.find(c => c.id === r.characterId)
             return (
               <div key={i} className="flex items-start gap-3 p-3 rounded-lg" style={{ background: 'var(--elevated)' }}>
-                <CharThumb imageId={related?.thumbnailId} name={related?.name} size={36} />
+                <CharThumb imageId={related?.thumbnailImageId} name={related?.name} size={36} />
                 <div>
                   <button className="text-sm font-medium hover:underline" style={{ color: 'var(--accent)' }} onClick={() => onNavigateChar(r.characterId)}>{related?.name || '?'}</button>
                   <p className="text-xs mt-0.5" style={{ color: 'var(--txm)' }}>{r.description}</p>
@@ -604,36 +690,63 @@ function CharDetailModal({ char, characters, posts, writings, isAdmin, getCharLo
 
       {/* 페어 관계설명 */}
       {activeTab === 'relation' && char.type === 'pair' && (
-        <div>
-          <div className="flex items-center gap-4 mb-4">
-            <div className="flex items-center gap-2">
-              <CharThumb imageId={getThumb(char.characterA)} name={getName(char.characterA)} size={48} />
-              <span className="font-bold" style={{ color: 'var(--tx)' }}>{getName(char.characterA)}</span>
+        <div className="space-y-4">
+          <div className="flex items-center gap-6">
+            <div className="flex flex-col items-center gap-1.5 cursor-pointer" onClick={() => onNavigateChar(char.characterA)}>
+              <CharThumb imageId={getThumb(char.characterA)} name={getName(char.characterA)} size={56} />
+              <span className="text-sm font-bold" style={{ color: 'var(--tx)' }}>{getName(char.characterA)}</span>
             </div>
-            <span style={{ color: 'var(--txm)' }}>×</span>
-            <div className="flex items-center gap-2">
-              <CharThumb imageId={getThumb(char.characterB)} name={getName(char.characterB)} size={48} />
-              <span className="font-bold" style={{ color: 'var(--tx)' }}>{getName(char.characterB)}</span>
+            <span className="text-2xl" style={{ color: 'var(--txs)' }}>×</span>
+            <div className="flex flex-col items-center gap-1.5 cursor-pointer" onClick={() => onNavigateChar(char.characterB)}>
+              <CharThumb imageId={getThumb(char.characterB)} name={getName(char.characterB)} size={56} />
+              <span className="text-sm font-bold" style={{ color: 'var(--tx)' }}>{getName(char.characterB)}</span>
             </div>
           </div>
-          <p className="text-sm" style={{ color: 'var(--tx)' }}>{char.description}</p>
+          {(char.colors || []).length > 0 && (
+            <div className="flex gap-4 flex-wrap">
+              {char.colors.map((c, i) => (
+                <div key={i} className="flex items-center gap-1.5">
+                  <div className="w-4 h-4 rounded-full" style={{ background: c.hex, boxShadow: '0 0 0 1px rgba(0,0,0,0.15)' }} />
+                  <span className="text-xs font-semibold" style={{ color: 'var(--txm)' }}>{c.label}</span>
+                </div>
+              ))}
+            </div>
+          )}
+          {char.description && (
+            <div className="rounded-lg p-3" style={{ background: 'var(--elevated)' }}>
+              <p className="text-sm" style={{ color: 'var(--tx)', whiteSpace: 'pre-wrap' }}>{char.description}</p>
+            </div>
+          )}
         </div>
       )}
 
       {/* 그룹 관계설명 */}
       {activeTab === 'relation' && char.type === 'group' && (
-        <p className="text-sm" style={{ color: 'var(--tx)' }}>{char.description}</p>
+        <div className="space-y-3">
+          {(char.colors || []).length > 0 && (
+            <div className="flex gap-4 flex-wrap">
+              {char.colors.map((c, i) => (
+                <div key={i} className="flex items-center gap-1.5">
+                  <div className="w-4 h-4 rounded-full" style={{ background: c.hex, boxShadow: '0 0 0 1px rgba(0,0,0,0.15)' }} />
+                  <span className="text-xs font-semibold" style={{ color: 'var(--txm)' }}>{c.label}</span>
+                </div>
+              ))}
+            </div>
+          )}
+          {char.description && <p className="text-sm" style={{ color: 'var(--tx)', whiteSpace: 'pre-wrap' }}>{char.description}</p>}
+        </div>
       )}
 
       {/* 그룹 멤버 */}
       {activeTab === 'members' && (
-        <div className="flex flex-wrap gap-3">
-          {char.members?.map(mid => {
+        <div className="grid grid-cols-3 gap-3">
+          {(char.members || []).map(mid => {
             const m = characters.find(c => c.id === mid)
             return m ? (
-              <div key={mid} className="flex flex-col items-center gap-1">
-                <CharThumb imageId={m.thumbnailId} name={m.name} size={48} />
-                <span className="text-xs" style={{ color: 'var(--tx)' }}>{m.name}</span>
+              <div key={mid} className="flex flex-col items-center gap-1.5 p-3 rounded-lg cursor-pointer"
+                style={{ background: 'var(--elevated)' }} onClick={() => onNavigateChar(mid)}>
+                <CharThumb imageId={m.thumbnailImageId} name={m.name} size={48} />
+                <span className="text-xs font-medium text-center" style={{ color: 'var(--tx)' }}>{m.name}</span>
               </div>
             ) : null
           })}
