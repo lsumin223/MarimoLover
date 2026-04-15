@@ -2,7 +2,6 @@
 export const initialSeries = [
   {
     id: 'series-1',
-    workId: 'work-1',
     title: '별과 기사단',
     description: '별빛 기사단을 배경으로 한 리온과 세라핀의 이야기.',
     mainCharacters: '리온 아스트레아, 세라핀 루나',
@@ -11,7 +10,6 @@ export const initialSeries = [
   },
   {
     id: 'series-2',
-    workId: 'work-2',
     title: '도시의 이면',
     description: '현대 도시를 무대로 한 요괴 중재자 하야시 켄의 일상.',
     mainCharacters: '하야시 켄',
@@ -24,7 +22,6 @@ export const initialWritings = [
   {
     id: 'writing-1',
     seriesId: 'series-1',
-    workId: 'work-1',
     chapterNum: 1,
     title: '별이 지는 날',
     content: `별이 지는 날이면 리온은 언제나 옥상에 올라갔다.
@@ -50,7 +47,6 @@ export const initialWritings = [
   {
     id: 'writing-2',
     seriesId: 'series-2',
-    workId: 'work-2',
     chapterNum: 1,
     title: '중재자의 하루',
     content: `오늘도 하루가 시작됐다.
