@@ -81,6 +81,7 @@ export const initialCharacters = [
   {
     id: 'char-group-1',
     type: 'group',
+    name: '',
     thumbnailImageId: null,
     description: '함께라면 못 이룰 것이 없다고 믿는 두 사람. 서로의 부족한 부분을 채워주는 이상적인 파트너.',
     timeline: [

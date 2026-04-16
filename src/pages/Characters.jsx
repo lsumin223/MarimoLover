@@ -52,7 +52,7 @@ function CharImageUpload({ label, imageId, preview, onChange, circle = false }) 
 // 캐릭터 폼 초기값
 const emptyIndividual = { type: 'individual', name: '', bio: '', personality: '', traits: '', thumbnailImageId: null, fullBodyImageId: null, headImageId: null, profileFields: [], relations: [], timeline: [], colors: [] }
 const newMember = () => ({ id: genId(), name: '', role: '', bio: '', imageId: null })
-const emptyGroup = { type: 'group', thumbnailImageId: null, description: '', timeline: [], colors: [], members: [newMember(), newMember()] }
+const emptyGroup = { type: 'group', name: '', thumbnailImageId: null, description: '', timeline: [], colors: [], members: [newMember(), newMember()] }
 
 export default function Characters() {
   const isAdmin = useIsAdmin()
@@ -362,6 +362,11 @@ export default function Characters() {
                   </div>
                 ))}
               </div>
+              {/* 관계 이름 */}
+              <div>
+                <label className="block text-xs font-medium mb-1" style={{ color: 'var(--txm)' }}>관계 이름 <span style={{ color: 'var(--txs)', fontWeight: 400 }}>(비워두면 캐릭터 이름 A × B 자동 설정)</span></label>
+                <input className="input" placeholder="예: 별빛 콤비, 단장×부단장" value={form.name || ''} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
+              </div>
               {/* 관계 설명 */}
               <div>
                 <label className="block text-xs font-medium mb-1" style={{ color: 'var(--txm)' }}>관계 설명</label>
@@ -458,10 +463,10 @@ function CharCard({ char, characters, isAdmin, onEdit, onDelete, onClick }) {
   const getCharById = (id) => characters.find(c => c.id === id)
 
   const members = char.members || []
-  const title = char.type === 'individual' ? char.name
-    : members.length <= 2
-      ? members.map(m => m.name || '?').join(' × ')
-      : members.map(m => m.name || '?').join(' · ')
+  const autoTitle = members.length <= 2
+    ? members.map(m => m.name || '?').join(' × ')
+    : members.map(m => m.name || '?').join(' · ')
+  const title = char.type === 'individual' ? char.name : (char.name?.trim() || autoTitle)
   const desc = char.type === 'individual' ? char.bio : char.description
   const colors = char.colors || []
   const typeColor = { individual: 'var(--accent)', pair: 'var(--accent2)', group: 'var(--txm)' }[char.type]
@@ -593,9 +598,10 @@ function CharDetailModal({ char, characters, posts, writings, isAdmin, getCharLo
 
   const logs = getCharLogs(char)
   const members = char.members || []
-  const modalTitle = char.type === 'individual' ? char.name
-    : members.length <= 2 ? members.map(m => m.name||'?').join(' × ')
-    : members.map(m => m.name||'?').join(' · ')
+  const autoModalTitle = members.length <= 2
+    ? members.map(m => m.name || '?').join(' × ')
+    : members.map(m => m.name || '?').join(' · ')
+  const modalTitle = char.type === 'individual' ? char.name : (char.name?.trim() || autoModalTitle)
 
   return (
     <Modal isOpen={true} onClose={onClose} title={modalTitle} size="lg">
