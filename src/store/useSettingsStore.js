@@ -20,6 +20,7 @@ const useSettingsStore = create(
       // 기본 프로필 설정
       nickname: '마리모',
       activityPeriod: '2020 — present',
+      bio: '',
       mainVisualImageId: null,
 
       // 테마 색상 및 다크모드
@@ -52,6 +53,8 @@ const useSettingsStore = create(
       setNickname: (nickname) => set({ nickname }),
 
       setActivityPeriod: (activityPeriod) => set({ activityPeriod }),
+
+      setBio: (bio) => set({ bio }),
 
       setMainVisualImageId: (mainVisualImageId) => set({ mainVisualImageId }),
 

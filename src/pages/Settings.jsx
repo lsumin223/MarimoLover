@@ -27,20 +27,21 @@ function SettingSection({ title, children }) {
 const ACCENT_PRESETS = ['#b48ef0', '#7c4dce', '#60a5fa', '#34d399', '#fb7185', '#f97316']
 const ACCENT2_PRESETS = ['#f093b0', '#fb923c', '#facc15', '#a3e635', '#22d3ee', '#e879f9']
 
-const WIDGET_LABELS = {
-  calendar: '달력',
-  archive: '최근 작업물',
-  trpg: 'TRPG 로그',
-  characterCard: '캐릭터 카드',
-  profile: '프로필',
-  miniGallery: '미니 갤러리',
-  bgm: 'BGM 플레이어',
+const WIDGET_META = {
+  profile:       { label: '프로필',       hint: '왼쪽' },
+  bgm:           { label: 'BGM 플레이어', hint: '왼쪽' },
+  archive:       { label: '최근 작업물',  hint: '가운데' },
+  trpg:          { label: 'TRPG 로그',   hint: '가운데' },
+  characterCard: { label: '캐릭터 카드',  hint: '오른쪽' },
+  calendar:      { label: '달력',         hint: '오른쪽' },
+  miniGallery:   { label: '미니 갤러리',  hint: '별도 활성화' },
 }
 
 export default function Settings() {
   const {
     nickname, setNickname,
     activityPeriod, setActivityPeriod,
+    bio, setBio,
     mainVisualImageId, setMainVisualImageId,
     accentColor, setAccentColor,
     accent2Color, setAccent2Color,
@@ -129,6 +130,10 @@ export default function Settings() {
             <label className="block text-xs font-medium mb-1" style={{ color: 'var(--txm)' }}>활동 기간</label>
             <input className="input" value={activityPeriod} onChange={e => setActivityPeriod(e.target.value)} placeholder="2020 — present" />
           </div>
+          <div>
+            <label className="block text-xs font-medium mb-1" style={{ color: 'var(--txm)' }}>한 줄 소개</label>
+            <input className="input" value={bio} onChange={e => setBio(e.target.value)} placeholder="짧은 자기소개" />
+          </div>
         </div>
       </SettingSection>
 
@@ -190,9 +195,12 @@ export default function Settings() {
       {/* 위젯 표시 설정 */}
       <SettingSection title="위젯 표시 설정">
         <div className="space-y-2">
-          {Object.entries(WIDGET_LABELS).map(([key, label]) => (
+          {Object.entries(WIDGET_META).map(([key, { label, hint }]) => (
             <div key={key} className="flex items-center justify-between py-1">
-              <span className="text-sm" style={{ color: 'var(--tx)' }}>{label}</span>
+              <div>
+                <span className="text-sm" style={{ color: 'var(--tx)' }}>{label}</span>
+                <span className="text-xs ml-2" style={{ color: 'var(--txs)' }}>{hint}</span>
+              </div>
               <button
                 className="relative w-10 h-5 rounded-full transition-all"
                 style={{ background: activeWidgets[key] ? 'var(--accent)' : 'var(--border)' }}

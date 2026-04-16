@@ -11,7 +11,7 @@ import useWritingStore from '../../store/useWritingStore'
 import useTrpgStore from '../../store/useTrpgStore'
 
 export default function ProfileWidget() {
-  const { nickname, activityPeriod, mainVisualImageId } = useSettingsStore()
+  const { nickname, activityPeriod, bio, mainVisualImageId } = useSettingsStore()
   const { characters } = useCharacterStore()
   const { posts } = useGalleryStore()
   const { writings } = useWritingStore()
@@ -72,6 +72,12 @@ export default function ProfileWidget() {
           {activityPeriod && (
             <span className="text-xs tracking-widest" style={{ color: 'var(--txs)' }}>
               {activityPeriod}
+            </span>
+          )}
+          {/* 한 줄 소개 */}
+          {bio && (
+            <span className="text-xs text-center leading-relaxed mt-0.5" style={{ color: 'var(--txm)', fontStyle: 'italic' }}>
+              {bio}
             </span>
           )}
         </div>
