@@ -50,6 +50,19 @@ export default function WritingPost() {
   })
   const [settingOpen, setSettingOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
+  const [readProgress, setReadProgress] = useState(0)
+
+  // 읽기 진행률 계산
+  useEffect(() => {
+    const onScroll = () => {
+      const el = document.documentElement
+      const scrolled = el.scrollTop
+      const total = el.scrollHeight - el.clientHeight
+      setReadProgress(total > 0 ? Math.min(100, (scrolled / total) * 100) : 0)
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
   // 설정 저장
   useEffect(() => {
@@ -103,6 +116,11 @@ export default function WritingPost() {
 
   return (
     <div className="relative min-h-screen animate-fade-in" style={{ background: viewerBg || 'var(--bg)', transition: 'background 0.2s' }}>
+      {/* 읽기 진행률 바 */}
+      <div className="fixed top-12 left-0 right-0 z-20" style={{ height: 2, background: 'var(--border)' }}>
+        <div style={{ height: '100%', width: `${readProgress}%`, background: 'var(--accent)', transition: 'width 0.1s linear' }} />
+      </div>
+
       {/* 상단 툴바 */}
       <div className="sticky top-12 z-10 flex items-center justify-between px-4 py-2" style={{ background: 'color-mix(in srgb, var(--surface) 90%, transparent)', backdropFilter: 'blur(8px)', borderBottom: '1px solid var(--border)' }}>
         <button className="flex items-center gap-1 text-sm btn-ghost" onClick={() => navigate('/writings')}>

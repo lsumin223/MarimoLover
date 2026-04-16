@@ -1,11 +1,12 @@
 // 글 작성/수정 에디터
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { ChevronLeft, Minus } from 'lucide-react'
 import useCharacterStore from '../store/useCharacterStore'
 import useWritingStore from '../store/useWritingStore'
 
 const genId = () => 'id-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7)
+const DRAFT_KEY = (id) => `writing-draft-${id || 'new'}`
 
 export default function WritingEditor() {
   const { id } = useParams()
@@ -19,13 +20,27 @@ export default function WritingEditor() {
   const [tags, setTags] = useState(existing?.tags || [])
   const [date, setDate] = useState(existing?.date || new Date().toISOString().slice(0, 10))
   const [content, setContent] = useState(existing?.content || '')
+  const [draftSavedAt, setDraftSavedAt] = useState(null)
   const textareaRef = useRef(null)
+  const autoSaveTimer = useRef(null)
 
   const individualChars = characters.filter(c => c.type === 'individual')
 
   const toggleTag = (name) => setTags(prev =>
     prev.includes(name) ? prev.filter(t => t !== name) : [...prev, name]
   )
+
+  // 자동 저장
+  const saveDraft = useCallback(() => {
+    localStorage.setItem(DRAFT_KEY(id), JSON.stringify({ title, tags, date, content }))
+    setDraftSavedAt(new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }))
+  }, [id, title, tags, date, content])
+
+  useEffect(() => {
+    clearTimeout(autoSaveTimer.current)
+    autoSaveTimer.current = setTimeout(saveDraft, 2000)
+    return () => clearTimeout(autoSaveTimer.current)
+  }, [title, tags, date, content])
 
   const insertIndent = () => {
     const el = textareaRef.current; if (!el) return
@@ -46,6 +61,7 @@ export default function WritingEditor() {
 
   const handleSave = () => {
     if (!title.trim()) return
+    localStorage.removeItem(DRAFT_KEY(id))
     if (existing) {
       updateWriting(existing.id, { title, tags, date, content })
       navigate(`/writings/${existing.id}`)
@@ -110,7 +126,10 @@ export default function WritingEditor() {
           <button className="flex items-center gap-1 px-3 py-1 rounded text-xs font-medium"
             style={{ background: 'var(--elevated)', color: 'var(--txm)' }}
             onClick={insertDivider}><Minus size={12} /> 구분선</button>
-          <span className="text-xs ml-auto" style={{ color: 'var(--txs)' }}>{content.length}자</span>
+          <span className="text-xs" style={{ color: 'var(--txs)' }}>{content.length}자</span>
+          {draftSavedAt && (
+            <span className="text-xs ml-auto" style={{ color: 'var(--txs)' }}>임시저장 {draftSavedAt}</span>
+          )}
         </div>
         <textarea
           ref={textareaRef}

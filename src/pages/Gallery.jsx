@@ -177,8 +177,14 @@ export default function Gallery() {
   const [pwModal, setPwModal] = useState(null) // {post}
   const [unlockedIds, setUnlockedIds] = useState(new Set())
 
-  // 날짜 내림차순 정렬
-  const filtered = [...posts].sort((a, b) => b.date.localeCompare(a.date))
+  // 정렬
+  const [sortBy, setSortBy] = useState('newest')
+  const filtered = [...posts].sort((a, b) => {
+    if (sortBy === 'newest') return b.date.localeCompare(a.date)
+    if (sortBy === 'oldest') return a.date.localeCompare(b.date)
+    if (sortBy === 'title')  return (a.title || '').localeCompare(b.title || '', 'ko')
+    return 0
+  })
 
   // 카드 클릭 — 비밀글이면 비번 모달, 아니면 라이트박스
   const handleCardClick = (post) => {
@@ -250,7 +256,19 @@ export default function Gallery() {
       {/* 헤더 */}
       <div className="flex items-center justify-between mb-5">
         <h1 className="text-xl font-bold" style={{ color: 'var(--tx)' }}>그림 갤러리</h1>
-        {isAdmin && <button className="btn-accent flex items-center gap-1.5" onClick={openCreate}><Plus size={14} /> 새 게시글</button>}
+        <div className="flex items-center gap-2">
+          <select
+            className="input text-xs"
+            style={{ width: 110, padding: '4px 8px' }}
+            value={sortBy}
+            onChange={e => setSortBy(e.target.value)}
+          >
+            <option value="newest">최신순</option>
+            <option value="oldest">오래된순</option>
+            <option value="title">제목순</option>
+          </select>
+          {isAdmin && <button className="btn-accent flex items-center gap-1.5" onClick={openCreate}><Plus size={14} /> 새 게시글</button>}
+        </div>
       </div>
 
       {/* 그리드 */}
