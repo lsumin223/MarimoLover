@@ -1,10 +1,8 @@
 // 설정 페이지
 import { useState } from 'react'
-import { RotateCcw, Check, Plus, Edit2, Trash2, X, Lock } from 'lucide-react'
+import { RotateCcw, Check, Lock } from 'lucide-react'
 import useSettingsStore from '../store/useSettingsStore'
-import useWorkStore from '../store/useWorkStore'
 import useAdminStore from '../store/useAdminStore'
-import Modal from '../components/common/Modal'
 import ConfirmDialog from '../components/common/ConfirmDialog'
 import { saveImage, resizeImage, getImage } from '../lib/imageDB'
 import { useEffect } from 'react'
@@ -30,7 +28,6 @@ const ACCENT_PRESETS = ['#b48ef0', '#7c4dce', '#60a5fa', '#34d399', '#fb7185', '
 const ACCENT2_PRESETS = ['#f093b0', '#fb923c', '#facc15', '#a3e635', '#22d3ee', '#e879f9']
 
 const WIDGET_LABELS = {
-  mainVisual: '메인 비주얼',
   calendar: '달력',
   archive: '최근 작업물',
   trpg: 'TRPG 로그',
@@ -55,8 +52,6 @@ export default function Settings() {
   } = useSettingsStore()
   const { isAdmin, openLoginModal } = useAdminStore()
 
-  const { works, addWork, updateWork, deleteWork } = useWorkStore()
-
   // 관리자 비밀번호가 설정된 상태에서 로그인 안 됐으면 잠금 화면
   if (adminPasswordHash && !isAdmin) {
     return (
@@ -71,12 +66,6 @@ export default function Settings() {
   // 메인 비주얼 이미지
   const [mainVisualSrc, setMainVisualSrc] = useState(null)
   useEffect(() => { if (mainVisualImageId) getImage(mainVisualImageId).then(setMainVisualSrc) }, [mainVisualImageId])
-
-  // 작품 폼
-  const [workFormOpen, setWorkFormOpen] = useState(false)
-  const [workEdit, setWorkEdit] = useState(null)
-  const [workForm, setWorkForm] = useState({ title: '', description: '' })
-  const [deleteWorkTarget, setDeleteWorkTarget] = useState(null)
 
   // 관리자 비밀번호 설정
   const [adminPwInput, setAdminPwInput] = useState('')
@@ -112,14 +101,6 @@ export default function Settings() {
     await saveImage(id, b64)
     setMainVisualImageId(id)
     setMainVisualSrc(b64)
-  }
-
-  // 작품 저장
-  const saveWork = () => {
-    if (!workForm.title) return
-    if (workEdit) updateWork(workEdit.id, workForm)
-    else addWork({ ...workForm, id: genId(), coverImageId: null, createdAt: new Date().toISOString() })
-    setWorkFormOpen(false)
   }
 
   // 비밀번호 설정
@@ -230,26 +211,6 @@ export default function Settings() {
         </button>
       </SettingSection>
 
-      {/* 작품 관리 */}
-      <SettingSection title="작품 관리">
-        <div className="space-y-2 mb-4">
-          {works.length === 0 && <div className="text-sm" style={{ color: 'var(--txs)' }}>등록된 작품이 없습니다</div>}
-          {works.map(work => (
-            <div key={work.id} className="flex items-center gap-3 p-3 rounded-lg" style={{ background: 'var(--elevated)' }}>
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium truncate" style={{ color: 'var(--tx)' }}>{work.title}</div>
-                {work.description && <div className="text-xs truncate mt-0.5" style={{ color: 'var(--txm)' }}>{work.description}</div>}
-              </div>
-              <button className="w-7 h-7 rounded flex items-center justify-center" style={{ color: 'var(--txm)' }} onClick={() => { setWorkEdit(work); setWorkForm({ title: work.title, description: work.description || '' }); setWorkFormOpen(true) }}><Edit2 size={13} /></button>
-              <button className="w-7 h-7 rounded flex items-center justify-center" style={{ color: '#f87171' }} onClick={() => setDeleteWorkTarget(work)}><Trash2 size={13} /></button>
-            </div>
-          ))}
-        </div>
-        <button className="btn-accent flex items-center gap-1.5 text-sm" onClick={() => { setWorkEdit(null); setWorkForm({ title: '', description: '' }); setWorkFormOpen(true) }}>
-          <Plus size={13} /> 작품 추가
-        </button>
-      </SettingSection>
-
       {/* 관리자 비밀번호 */}
       <SettingSection title="관리자 비밀번호">
         <p className="text-xs mb-3" style={{ color: 'var(--txm)' }}>
@@ -289,32 +250,6 @@ export default function Settings() {
           </button>
         </div>
       </SettingSection>
-
-      {/* 작품 폼 모달 */}
-      <Modal isOpen={workFormOpen} onClose={() => setWorkFormOpen(false)} title={workEdit ? '작품 수정' : '새 작품'} size="sm">
-        <div className="space-y-3">
-          <div>
-            <label className="block text-xs font-medium mb-1" style={{ color: 'var(--txm)' }}>작품명 *</label>
-            <input className="input" value={workForm.title} onChange={e => setWorkForm(f => ({ ...f, title: e.target.value }))} placeholder="작품 이름" />
-          </div>
-          <div>
-            <label className="block text-xs font-medium mb-1" style={{ color: 'var(--txm)' }}>설명</label>
-            <textarea className="textarea" rows={3} value={workForm.description} onChange={e => setWorkForm(f => ({ ...f, description: e.target.value }))} placeholder="작품 소개" />
-          </div>
-        </div>
-        <div className="flex justify-end gap-2 mt-5">
-          <button className="btn-ghost" onClick={() => setWorkFormOpen(false)}>취소</button>
-          <button className="btn-accent" onClick={saveWork}>저장</button>
-        </div>
-      </Modal>
-
-      {/* 작품 삭제 확인 */}
-      <ConfirmDialog
-        isOpen={!!deleteWorkTarget}
-        message={`"${deleteWorkTarget?.title}" 작품을 삭제하시겠습니까?`}
-        onConfirm={() => { deleteWork(deleteWorkTarget.id); setDeleteWorkTarget(null) }}
-        onCancel={() => setDeleteWorkTarget(null)}
-      />
 
       {/* 위젯 배치 초기화 확인 */}
       <ConfirmDialog

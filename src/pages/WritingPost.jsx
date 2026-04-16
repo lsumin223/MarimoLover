@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { ChevronLeft, ChevronRight, Edit2, Trash2, Palette, X } from 'lucide-react'
 import useWritingStore from '../store/useWritingStore'
-import useWorkStore from '../store/useWorkStore'
 import ConfirmDialog from '../components/common/ConfirmDialog'
 
 // 뷰어 설정 기본값
@@ -45,7 +44,6 @@ export default function WritingPost() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { writings, series, deleteWriting } = useWritingStore()
-  const { works } = useWorkStore()
 
   const [settings, setSettings] = useState(() => {
     try { return { ...DEFAULT_VIEWER, ...JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}') } } catch { return DEFAULT_VIEWER }
@@ -79,7 +77,6 @@ export default function WritingPost() {
   const next = siblingsInSeries[idx + 1]
 
   const currentSeries = series?.find(s => s.id === writing.seriesId)
-  const workTitle = works.find(w => w.id === writing.workId)?.title || '미분류'
 
   // 배경/글자색 계산
   const getBg = () => {
@@ -239,7 +236,6 @@ export default function WritingPost() {
           )}
           <h1 className="text-2xl font-bold mb-3" style={{ color: viewerText || 'var(--tx)', fontFamily: settings.fontFamily }}>{writing.title}</h1>
           <div className="flex flex-wrap gap-2 items-center">
-            {writing.workId && <span className="tag">{workTitle}</span>}
             <span className="text-xs ml-auto" style={{ color: viewerText ? `${viewerText}88` : 'var(--txs)' }}>{writing.date}</span>
           </div>
         </div>

@@ -361,7 +361,7 @@ export default function Writings() {
         <div className="flex gap-2 mt-5 justify-end">
           <button className="btn-ghost" onClick={() => setWritingFormOpen(false)}>취소</button>
           <button className="btn-accent" onClick={() => { saveWriting(); navigate(`/writings/`) }}>저장만</button>
-          <button className="btn-accent" onClick={() => { if (writingForm.title && selectedSeriesId) { const payload = { ...writingForm, seriesId: selectedSeriesId, workId: currentSeries?.workId || '' }; if (editWriting) updateWriting(editWriting.id, payload); else addWriting(payload); setWritingFormOpen(false); } }}>저장</button>
+          <button className="btn-accent" onClick={saveWriting}>저장</button>
         </div>
       </Modal>
 

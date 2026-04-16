@@ -6,22 +6,11 @@ import { Image, FileText, GripVertical } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import useGalleryStore from '../../store/useGalleryStore'
 import useWritingStore from '../../store/useWritingStore'
-import useWorkStore from '../../store/useWorkStore'
 
 export default function ArchiveWidget() {
   const { posts } = useGalleryStore()
   const { writings } = useWritingStore()
-  const { works } = useWorkStore()
   const navigate = useNavigate()
-
-  // 작품 id -> 제목 매핑
-  const workMap = useMemo(() => {
-    const map = {}
-    works.forEach((w) => {
-      map[w.id] = w.title
-    })
-    return map
-  }, [works])
 
   // 갤러리 + 글을 합쳐 날짜 내림차순으로 정렬 후 상위 5개 추출
   const recentItems = useMemo(() => {
@@ -30,7 +19,6 @@ export default function ArchiveWidget() {
       type: 'gallery',
       title: p.title || '(제목 없음)',
       date: p.date || p.createdAt || '',
-      workId: p.workId,
       path: `/gallery/${p.id}`,
     }))
 
@@ -39,7 +27,6 @@ export default function ArchiveWidget() {
       type: 'writing',
       title: w.title || '(제목 없음)',
       date: w.date || w.createdAt || '',
-      workId: w.workId,
       path: `/writings/${w.id}`,
     }))
 
@@ -97,7 +84,7 @@ export default function ArchiveWidget() {
                     )}
                   </span>
 
-                  {/* 제목 + 부가 정보 */}
+                  {/* 제목 + 날짜 */}
                   <div className="flex flex-col min-w-0 flex-1">
                     <span
                       className="text-xs font-medium truncate"
@@ -105,29 +92,14 @@ export default function ArchiveWidget() {
                     >
                       {item.title}
                     </span>
-                    <div className="flex items-center gap-1.5 mt-0.5">
-                      {/* 작품명 */}
-                      {item.workId && workMap[item.workId] && (
-                        <span
-                          className="text-xs truncate"
-                          style={{ color: 'var(--txs)', maxWidth: 80 }}
-                        >
-                          {workMap[item.workId]}
-                        </span>
-                      )}
-                      {item.workId && workMap[item.workId] && item.date && (
-                        <span style={{ color: 'var(--txs)', fontSize: 10 }}>·</span>
-                      )}
-                      {/* 날짜 */}
-                      {item.date && (
-                        <span
-                          className="text-xs tabular-nums shrink-0"
-                          style={{ color: 'var(--txs)' }}
-                        >
-                          {item.date.slice(0, 10)}
-                        </span>
-                      )}
-                    </div>
+                    {item.date && (
+                      <span
+                        className="text-xs tabular-nums"
+                        style={{ color: 'var(--txs)' }}
+                      >
+                        {item.date.slice(0, 10)}
+                      </span>
+                    )}
                   </div>
                 </button>
               </li>
