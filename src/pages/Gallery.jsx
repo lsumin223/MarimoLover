@@ -31,6 +31,31 @@ function GalleryThumb({ imageId }) {
   )
 }
 
+// 이미지 없는 텍스트 카드
+function TextCard({ post }) {
+  return (
+    <div
+      className="w-full aspect-square rounded-lg flex flex-col items-center justify-center gap-2 p-3 text-center"
+      style={{
+        background: 'var(--elevated)',
+        border: '1.5px dashed color-mix(in srgb, var(--accent) 40%, transparent)',
+      }}
+    >
+      <span className="text-xs font-bold leading-tight line-clamp-3" style={{ color: 'var(--tx)' }}>
+        {post.title}
+      </span>
+      <span className="text-xs" style={{ color: 'var(--txs)' }}>{post.date}</span>
+      {(post.tags || []).length > 0 && (
+        <div className="flex flex-wrap gap-1 justify-center">
+          {post.tags.slice(0, 2).map(t => (
+            <span key={t} className="text-xs px-1.5 py-0.5 rounded-full" style={{ background: 'color-mix(in srgb, var(--accent) 12%, transparent)', color: 'var(--accent)' }}>{t}</span>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // 라이트박스
 function Lightbox({ post, initialIdx, onClose }) {
   const [idx, setIdx] = useState(initialIdx)
@@ -284,7 +309,10 @@ export default function Gallery() {
               onMouseLeave={() => setHoveredId(null)}
               onClick={() => handleCardClick(post)}
             >
-              <GalleryThumb imageId={post.imageIds?.[0]} />
+              {(post.imageIds?.length || 0) > 0
+                ? <GalleryThumb imageId={post.imageIds[0]} />
+                : <TextCard post={post} />
+              }
 
               {/* 잠금 오버레이 */}
               {post.passwordHash && !unlockedIds.has(post.id) && (
@@ -293,12 +321,14 @@ export default function Gallery() {
                 </div>
               )}
 
-              {/* 호버 정보 오버레이 */}
-              <div className="absolute inset-0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-2"
-                style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 60%)' }}>
-                <div className="text-xs font-medium text-white truncate">{post.title}</div>
-                <div className="text-xs" style={{ color: 'rgba(255,255,255,0.6)' }}>{post.date}</div>
-              </div>
+              {/* 호버 정보 오버레이 — 이미지 있는 카드만 */}
+              {(post.imageIds?.length || 0) > 0 && (
+                <div className="absolute inset-0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-2"
+                  style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 60%)' }}>
+                  <div className="text-xs font-medium text-white truncate">{post.title}</div>
+                  <div className="text-xs" style={{ color: 'rgba(255,255,255,0.6)' }}>{post.date}</div>
+                </div>
+              )}
 
               {/* 편집/삭제 버튼 — 관리자만 */}
               {isAdmin && hoveredId === post.id && (
