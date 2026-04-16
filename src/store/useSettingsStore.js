@@ -20,6 +20,7 @@ const useSettingsStore = create(
       // 기본 프로필 설정
       nickname: '마리모',
       activityPeriod: '2020 — present',
+      bio: '',
       mainVisualImageId: null,
 
       // 테마 색상 및 다크모드
@@ -27,12 +28,8 @@ const useSettingsStore = create(
       accent2Color: '#f093b0',
       darkMode: true,
 
-      // 작품 필터 (null = 전체 표시)
-      selectedWorkId: null,
-
       // 위젯 표시 여부
       activeWidgets: {
-        mainVisual: true,
         calendar: true,
         archive: true,
         trpg: true,
@@ -57,6 +54,8 @@ const useSettingsStore = create(
 
       setActivityPeriod: (activityPeriod) => set({ activityPeriod }),
 
+      setBio: (bio) => set({ bio }),
+
       setMainVisualImageId: (mainVisualImageId) => set({ mainVisualImageId }),
 
       setAccentColor: (accentColor) => {
@@ -77,8 +76,6 @@ const useSettingsStore = create(
         set({ darkMode: next })
         applyTheme({ accentColor, accent2Color, darkMode: next })
       },
-
-      setSelectedWorkId: (selectedWorkId) => set({ selectedWorkId }),
 
       toggleWidget: (key) =>
         set((state) => ({

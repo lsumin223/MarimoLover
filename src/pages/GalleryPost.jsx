@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { ChevronLeft, Edit2, Trash2, X, Image as ImageIcon } from 'lucide-react'
 import useGalleryStore from '../store/useGalleryStore'
-import useWorkStore from '../store/useWorkStore'
 import useCharacterStore from '../store/useCharacterStore'
 import Modal from '../components/common/Modal'
 import ConfirmDialog from '../components/common/ConfirmDialog'
@@ -16,8 +15,8 @@ export default function GalleryPost() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { posts, updatePost, deletePost } = useGalleryStore()
-  const { works } = useWorkStore()
   const { characters } = useCharacterStore()
+  const individualChars = characters.filter(c => c.type === 'individual')
 
   const post = posts.find(p => p.id === id)
 
@@ -36,8 +35,6 @@ export default function GalleryPost() {
     )
   }
 
-  const workTitle = works.find(w => w.id === post.workId)?.title || '미분류'
-  const charNames = (post.characterTags || []).map(id => characters.find(c => c.id === id)?.name || '?')
 
   // 편집 모달 열기
   const openEdit = async () => {
@@ -107,8 +104,7 @@ export default function GalleryPost() {
       <div className="p-5 rounded-xl" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
         <h1 className="text-2xl font-bold mb-3" style={{ color: 'var(--tx)' }}>{post.title}</h1>
         <div className="flex flex-wrap gap-2 items-center">
-          {post.workId && <span className="tag">{workTitle}</span>}
-          {charNames.map((name, i) => <span key={i} className="tag" style={{ color: 'var(--accent2)', background: 'color-mix(in srgb, var(--accent2) 12%, transparent)', border: '1px solid color-mix(in srgb, var(--accent2) 25%, transparent)' }}>{name}</span>)}
+          {(post.tags || []).map((name, i) => <span key={i} className="tag" style={{ color: 'var(--accent2)', background: 'color-mix(in srgb, var(--accent2) 12%, transparent)', border: '1px solid color-mix(in srgb, var(--accent2) 25%, transparent)' }}>{name}</span>)}
           <span className="text-xs ml-auto" style={{ color: 'var(--txs)' }}>{post.date}</span>
         </div>
       </div>
@@ -121,33 +117,33 @@ export default function GalleryPost() {
               <label className="block text-xs font-medium mb-1" style={{ color: 'var(--txm)' }}>제목</label>
               <input className="input" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} />
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-medium mb-1" style={{ color: 'var(--txm)' }}>작품</label>
-                <select className="input" value={form.workId || ''} onChange={e => setForm(f => ({ ...f, workId: e.target.value }))}>
-                  <option value="">미분류</option>
-                  {works.map(w => <option key={w.id} value={w.id}>{w.title}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs font-medium mb-1" style={{ color: 'var(--txm)' }}>날짜</label>
-                <input className="input" type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} />
-              </div>
-            </div>
             <div>
-              <label className="block text-xs font-medium mb-2" style={{ color: 'var(--txm)' }}>캐릭터 태그</label>
-              <div className="flex flex-wrap gap-2">
-                {characters.map(c => (
-                  <label key={c.id} className="flex items-center gap-1.5 cursor-pointer text-sm">
-                    <input type="checkbox"
-                      checked={(form.characterTags || []).includes(c.id)}
-                      onChange={e => setForm(f => ({ ...f, characterTags: e.target.checked ? [...(f.characterTags || []), c.id] : (f.characterTags || []).filter(i => i !== c.id) }))}
-                    />
-                    <span style={{ color: 'var(--tx)' }}>{c.name || c.groupName || '?'}</span>
-                  </label>
-                ))}
-              </div>
+              <label className="block text-xs font-medium mb-1" style={{ color: 'var(--txm)' }}>날짜</label>
+              <input className="input" type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} />
             </div>
+            {individualChars.length > 0 && (
+              <div>
+                <label className="block text-xs font-medium mb-2" style={{ color: 'var(--txm)' }}>캐릭터 태그</label>
+                <div className="flex flex-wrap gap-2">
+                  {individualChars.map(c => {
+                    const active = (form.tags || []).includes(c.name)
+                    return (
+                      <button key={c.id}
+                        className="px-2.5 py-1 rounded-full text-xs font-medium transition-all"
+                        style={active
+                          ? { background: 'var(--accent)', color: 'var(--bg)' }
+                          : { border: '1px solid var(--border)', color: 'var(--txm)' }}
+                        onClick={() => setForm(f => ({
+                          ...f,
+                          tags: active ? (f.tags || []).filter(t => t !== c.name) : [...(f.tags || []), c.name]
+                        }))}>
+                        {c.name}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
             <div>
               <label className="block text-xs font-medium mb-2" style={{ color: 'var(--txm)' }}>이미지</label>
               <div className="flex gap-2 flex-wrap mb-2">

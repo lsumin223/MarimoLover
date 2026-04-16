@@ -3,8 +3,7 @@ export const initialGallery = [
   {
     id: 'gallery-1',
     title: '별빛 아래의 두 사람',
-    workId: 'work-1',
-    characterTags: ['char-1', 'char-2'],
+    tags: [],
     imageIds: [],
     date: '2024-03-10',
     createdAt: '2024-03-10',
@@ -12,8 +11,7 @@ export const initialGallery = [
   {
     id: 'gallery-2',
     title: '리온 전신 컨셉',
-    workId: 'work-1',
-    characterTags: ['char-1'],
+    tags: [],
     imageIds: [],
     date: '2024-02-14',
     createdAt: '2024-02-14',
@@ -21,8 +19,7 @@ export const initialGallery = [
   {
     id: 'gallery-3',
     title: '도시의 이면 — 밤거리',
-    workId: 'work-2',
-    characterTags: ['char-3'],
+    tags: [],
     imageIds: [],
     date: '2024-01-20',
     createdAt: '2024-01-20',

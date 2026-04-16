@@ -36,6 +36,8 @@ export default function Writings() {
 
   // 선택된 시리즈
   const [selectedSeriesId, setSelectedSeriesId] = useState(null)
+  // 태그 필터
+  const [activeTag, setActiveTag] = useState(null)
 
   // 시리즈 폼
   const [seriesFormOpen, setSeriesFormOpen] = useState(false)
@@ -58,16 +60,25 @@ export default function Writings() {
   const currentSeries = series.find(s => s.id === selectedSeriesId)
 
   // 선택된 시리즈의 글 목록
-  const currentWritings = writings
+  const seriesWritings = writings
     .filter(w => w.seriesId === selectedSeriesId)
     .sort((a, b) => (a.chapterNum || 0) - (b.chapterNum || 0))
 
-  // 시리즈 선택 시 자동으로 첫 시리즈 선택
+  // 현재 시리즈 글들의 태그 집계
+  const seriesTags = [...new Set(seriesWritings.flatMap(w => w.tags || []))].filter(Boolean)
+
+  // 태그 필터 적용
+  const currentWritings = activeTag
+    ? seriesWritings.filter(w => (w.tags || []).includes(activeTag))
+    : seriesWritings
+
+  // 시리즈 선택 시 자동으로 첫 시리즈 선택 & 태그 필터 초기화
   useEffect(() => {
     if (!selectedSeriesId && filteredSeries.length > 0) {
       setSelectedSeriesId(filteredSeries[0].id)
     }
-  }, [filteredSeries.length])
+    setActiveTag(null)
+  }, [selectedSeriesId])
 
   // 시리즈 썸네일 로드
   useEffect(() => {
@@ -228,10 +239,31 @@ export default function Writings() {
             </div>
 
             {/* 글 목록 헤더 */}
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-bold" style={{ color: 'var(--tx)' }}>글 목록 <span style={{ color: 'var(--txs)', fontWeight: 400 }}>({currentWritings.length})</span></span>
               {isAdmin && <button className="btn-accent flex items-center gap-1 text-xs" onClick={openWritingCreate}><Plus size={12} /> 새 글</button>}
             </div>
+            {/* 태그 필터 */}
+            {seriesTags.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mb-3">
+                <button
+                  className="px-2 py-0.5 rounded-full text-xs transition-all"
+                  style={!activeTag
+                    ? { background: 'var(--accent)', color: 'var(--bg)' }
+                    : { border: '1px solid var(--border)', color: 'var(--txm)' }}
+                  onClick={() => setActiveTag(null)}
+                >전체</button>
+                {seriesTags.map(tag => (
+                  <button key={tag}
+                    className="px-2 py-0.5 rounded-full text-xs transition-all"
+                    style={activeTag === tag
+                      ? { background: 'var(--accent)', color: 'var(--bg)' }
+                      : { border: '1px solid var(--border)', color: 'var(--txm)' }}
+                    onClick={() => setActiveTag(t => t === tag ? null : tag)}
+                  >{tag}</button>
+                ))}
+              </div>
+            )}
 
             {/* 글 목록 */}
             {currentWritings.length === 0 ? (
@@ -361,7 +393,7 @@ export default function Writings() {
         <div className="flex gap-2 mt-5 justify-end">
           <button className="btn-ghost" onClick={() => setWritingFormOpen(false)}>취소</button>
           <button className="btn-accent" onClick={() => { saveWriting(); navigate(`/writings/`) }}>저장만</button>
-          <button className="btn-accent" onClick={() => { if (writingForm.title && selectedSeriesId) { const payload = { ...writingForm, seriesId: selectedSeriesId, workId: currentSeries?.workId || '' }; if (editWriting) updateWriting(editWriting.id, payload); else addWriting(payload); setWritingFormOpen(false); } }}>저장</button>
+          <button className="btn-accent" onClick={saveWriting}>저장</button>
         </div>
       </Modal>
 

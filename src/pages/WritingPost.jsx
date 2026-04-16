@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { ChevronLeft, ChevronRight, Edit2, Trash2, Palette, X } from 'lucide-react'
 import useWritingStore from '../store/useWritingStore'
-import useWorkStore from '../store/useWorkStore'
 import ConfirmDialog from '../components/common/ConfirmDialog'
 
 // 뷰어 설정 기본값
@@ -45,13 +44,25 @@ export default function WritingPost() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { writings, series, deleteWriting } = useWritingStore()
-  const { works } = useWorkStore()
 
   const [settings, setSettings] = useState(() => {
     try { return { ...DEFAULT_VIEWER, ...JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}') } } catch { return DEFAULT_VIEWER }
   })
   const [settingOpen, setSettingOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
+  const [readProgress, setReadProgress] = useState(0)
+
+  // 읽기 진행률 계산
+  useEffect(() => {
+    const onScroll = () => {
+      const el = document.documentElement
+      const scrolled = el.scrollTop
+      const total = el.scrollHeight - el.clientHeight
+      setReadProgress(total > 0 ? Math.min(100, (scrolled / total) * 100) : 0)
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
   // 설정 저장
   useEffect(() => {
@@ -79,7 +90,6 @@ export default function WritingPost() {
   const next = siblingsInSeries[idx + 1]
 
   const currentSeries = series?.find(s => s.id === writing.seriesId)
-  const workTitle = works.find(w => w.id === writing.workId)?.title || '미분류'
 
   // 배경/글자색 계산
   const getBg = () => {
@@ -106,6 +116,11 @@ export default function WritingPost() {
 
   return (
     <div className="relative min-h-screen animate-fade-in" style={{ background: viewerBg || 'var(--bg)', transition: 'background 0.2s' }}>
+      {/* 읽기 진행률 바 */}
+      <div className="fixed top-12 left-0 right-0 z-20" style={{ height: 2, background: 'var(--border)' }}>
+        <div style={{ height: '100%', width: `${readProgress}%`, background: 'var(--accent)', transition: 'width 0.1s linear' }} />
+      </div>
+
       {/* 상단 툴바 */}
       <div className="sticky top-12 z-10 flex items-center justify-between px-4 py-2" style={{ background: 'color-mix(in srgb, var(--surface) 90%, transparent)', backdropFilter: 'blur(8px)', borderBottom: '1px solid var(--border)' }}>
         <button className="flex items-center gap-1 text-sm btn-ghost" onClick={() => navigate('/writings')}>
@@ -239,7 +254,6 @@ export default function WritingPost() {
           )}
           <h1 className="text-2xl font-bold mb-3" style={{ color: viewerText || 'var(--tx)', fontFamily: settings.fontFamily }}>{writing.title}</h1>
           <div className="flex flex-wrap gap-2 items-center">
-            {writing.workId && <span className="tag">{workTitle}</span>}
             <span className="text-xs ml-auto" style={{ color: viewerText ? `${viewerText}88` : 'var(--txs)' }}>{writing.date}</span>
           </div>
         </div>

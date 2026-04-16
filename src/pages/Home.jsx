@@ -1,6 +1,5 @@
 // 홈 대시보드 — 고정 3열 레이아웃 (react-grid-layout 제거)
 import useSettingsStore from '../store/useSettingsStore'
-import MainVisual from '../components/widgets/MainVisual'
 import CalendarWidget from '../components/widgets/CalendarWidget'
 import ArchiveWidget from '../components/widgets/ArchiveWidget'
 import TrpgWidget from '../components/widgets/TrpgWidget'
@@ -10,7 +9,6 @@ import MiniGalleryWidget from '../components/widgets/MiniGalleryWidget'
 import BgmWidget from '../components/widgets/BgmWidget'
 
 const WIDGET_MAP = {
-  mainVisual:    MainVisual,
   calendar:      CalendarWidget,
   miniGallery:   MiniGalleryWidget,
   archive:       ArchiveWidget,

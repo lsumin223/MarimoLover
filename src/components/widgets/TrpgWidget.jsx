@@ -108,25 +108,28 @@ export default function TrpgWidget() {
                       {/* 캠페인명 + 날짜 */}
                       <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
                         {campaignName && (
-                          <span
-                            className="text-xs truncate"
-                            style={{ color: 'var(--txs)', maxWidth: 90 }}
-                          >
+                          <span className="text-xs truncate" style={{ color: 'var(--txs)', maxWidth: 90 }}>
                             {campaignName}
                           </span>
                         )}
-                        {campaignName && date && (
-                          <span style={{ color: 'var(--txs)', fontSize: 10 }}>·</span>
-                        )}
+                        {campaignName && date && <span style={{ color: 'var(--txs)', fontSize: 10 }}>·</span>}
                         {date && (
-                          <span
-                            className="text-xs tabular-nums shrink-0"
-                            style={{ color: 'var(--txs)' }}
-                          >
+                          <span className="text-xs tabular-nums shrink-0" style={{ color: 'var(--txs)' }}>
                             {date}
                           </span>
                         )}
                       </div>
+                      {/* 참여 캐릭터 */}
+                      {(session.plCharacters || []).length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {session.plCharacters.map(p => (
+                            <span key={p.id} className="text-xs px-1.5 py-0.5 rounded-full"
+                              style={{ background: 'color-mix(in srgb, var(--accent2) 12%, transparent)', color: 'var(--accent2)' }}>
+                              {p.name}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </button>
                 </li>
