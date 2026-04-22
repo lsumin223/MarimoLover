@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { ChevronLeft, Download, Upload, X, Plus, Trash2, Lock, Eye, EyeOff, Users, Check } from 'lucide-react'
 import useTrpgStore from '../store/useTrpgStore'
+import useCharacterStore from '../store/useCharacterStore'
 import ConfirmDialog from '../components/common/ConfirmDialog'
 import { useIsAdmin } from '../store/useAdminStore'
 
@@ -39,6 +40,8 @@ export default function TrpgSession() {
   const { sessionId } = useParams()
   const navigate = useNavigate()
   const { campaigns, sessions, updateSession } = useTrpgStore()
+  const { characters } = useCharacterStore()
+  const individualChars = characters.filter(c => c.type === 'individual' && c.name)
 
   const session = sessions.find(s => s.id === sessionId)
   const campaign = session ? campaigns.find(c => c.id === session.campaignId) : null
@@ -228,23 +231,61 @@ export default function TrpgSession() {
           </div>
           {isAdmin && (
             <button className="btn-ghost flex items-center gap-1 text-xs" onClick={() => setShowPlForm(v => !v)}>
-              <Plus size={13} /> 추가
+              <Plus size={13} /> {showPlForm ? '닫기' : '추가'}
             </button>
           )}
         </div>
-        {showPlForm && (
-          <div className="flex gap-2 mb-3 animate-slide-up">
-            <input className="input flex-1" placeholder="캐릭터명" value={plCharInput.name}
-              onChange={e => setPlCharInput(v => ({ ...v, name: e.target.value }))}
-              onKeyDown={e => e.key === 'Enter' && addPlChar()} autoFocus />
-            <input className="input flex-1" placeholder="플레이어명" value={plCharInput.player}
-              onChange={e => setPlCharInput(v => ({ ...v, player: e.target.value }))}
-              onKeyDown={e => e.key === 'Enter' && addPlChar()} />
-            <button className="btn-accent px-3 text-sm" onClick={addPlChar}>추가</button>
-            <button className="btn-ghost px-2" onClick={() => setShowPlForm(false)}><X size={14} /></button>
+
+        {/* 관리자 편집 UI */}
+        {isAdmin && showPlForm && (
+          <div className="mb-3 space-y-2 animate-slide-up">
+            {/* 캐릭터 스토어에서 빠른 선택 */}
+            {individualChars.length > 0 && (
+              <div>
+                <p className="text-xs mb-1.5" style={{ color: 'var(--txm)' }}>캐릭터에서 선택</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {individualChars.map(c => {
+                    const already = (session.plCharacters || []).some(p => p.name === c.name)
+                    return (
+                      <button
+                        key={c.id}
+                        className="px-2.5 py-1 rounded-full text-xs transition-all"
+                        style={already
+                          ? { background: 'var(--accent)', color: 'var(--bg)' }
+                          : { border: '1px solid var(--border)', color: 'var(--txm)' }}
+                        onClick={() => {
+                          if (already) {
+                            updateSession(session.id, { plCharacters: (session.plCharacters || []).filter(p => p.name !== c.name) })
+                          } else {
+                            updateSession(session.id, { plCharacters: [...(session.plCharacters || []), { id: genId(), name: c.name, player: '' }] })
+                          }
+                        }}
+                      >
+                        {already ? <Check size={11} className="inline mr-1" /> : null}{c.name}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+            {/* 직접 입력 */}
+            <div>
+              <p className="text-xs mb-1.5" style={{ color: 'var(--txm)' }}>직접 입력</p>
+              <div className="flex gap-2">
+                <input className="input flex-1" placeholder="캐릭터명" value={plCharInput.name}
+                  onChange={e => setPlCharInput(v => ({ ...v, name: e.target.value }))}
+                  onKeyDown={e => e.key === 'Enter' && addPlChar()} />
+                <input className="input flex-1" placeholder="플레이어명 (선택)" value={plCharInput.player}
+                  onChange={e => setPlCharInput(v => ({ ...v, player: e.target.value }))}
+                  onKeyDown={e => e.key === 'Enter' && addPlChar()} />
+                <button className="btn-accent px-3 text-sm" onClick={addPlChar}>추가</button>
+              </div>
+            </div>
           </div>
         )}
-        {(session.plCharacters || []).length === 0 && !showPlForm ? (
+
+        {/* 등록된 PL 캐릭터 목록 */}
+        {(session.plCharacters || []).length === 0 ? (
           <p className="text-xs" style={{ color: 'var(--txs)' }}>등록된 PL 캐릭터가 없습니다.</p>
         ) : (
           <div className="flex flex-wrap gap-2">

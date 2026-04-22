@@ -1,13 +1,14 @@
 // 캐릭터 페이지 — 캐릭터 카드 목록 + 생성/수정/삭제 + 상세 모달
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, Edit2, Trash2, X, ChevronRight, Image as ImageIcon, FileText } from 'lucide-react'
+import { Plus, Edit2, Trash2, X, ChevronRight, Image as ImageIcon, FileText, GitFork } from 'lucide-react'
 import useCharacterStore from '../store/useCharacterStore'
 import useGalleryStore from '../store/useGalleryStore'
 import useWritingStore from '../store/useWritingStore'
 import { useIsAdmin } from '../store/useAdminStore'
 import Modal from '../components/common/Modal'
 import ConfirmDialog from '../components/common/ConfirmDialog'
+import RelationGraph from '../components/RelationGraph'
 import { getImage, saveImage, resizeImage } from '../lib/imageDB'
 
 const genId = () => 'id-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7)
@@ -61,6 +62,8 @@ export default function Characters() {
   const { posts } = useGalleryStore()
   const { writings } = useWritingStore()
 
+  // 뷰 상태
+  const [viewMode, setViewMode] = useState('grid') // 'grid' | 'relation'
   // 필터 상태
   const [typeFilter, setTypeFilter] = useState('all') // 'all' | 'individual' | 'pair'
   // 폼 모달
@@ -166,47 +169,68 @@ export default function Characters() {
       {/* 헤더 */}
       <div className="flex items-center justify-between mb-5">
         <h1 className="text-xl font-bold" style={{ color: 'var(--tx)' }}>캐릭터</h1>
-        {isAdmin && (
-          <button className="btn-accent flex items-center gap-1.5" onClick={openCreate}>
-            <Plus size={14} /> 새 캐릭터
-          </button>
-        )}
-      </div>
-
-      {/* 타입 필터 */}
-      <div className="flex gap-2 mb-5">
-        {[['all', '전체'], ['individual', '개인'], ['group', '다인']].map(([v, l]) => (
+        <div className="flex items-center gap-2">
+          {/* 뷰 전환 */}
           <button
-            key={v}
-            className="px-3 py-1 rounded-full text-xs font-medium transition-all"
-            style={typeFilter === v
-              ? { background: 'var(--accent)', color: 'var(--bg)', border: '1px solid var(--accent)' }
-              : { background: 'transparent', color: 'var(--txm)', border: '1px solid var(--border)' }
-            }
-            onClick={() => setTypeFilter(v)}
-          >{l}</button>
-        ))}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
+            style={viewMode === 'relation'
+              ? { background: 'var(--accent)', color: 'var(--bg)' }
+              : { border: '1px solid var(--border)', color: 'var(--txm)' }}
+            onClick={() => setViewMode(v => v === 'relation' ? 'grid' : 'relation')}
+          >
+            <GitFork size={13} /> 관계도
+          </button>
+          {isAdmin && (
+            <button className="btn-accent flex items-center gap-1.5" onClick={openCreate}>
+              <Plus size={14} /> 새 캐릭터
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* 캐릭터 그리드 */}
-      {filtered.length === 0 ? (
-        <div className="text-center py-20" style={{ color: 'var(--txs)' }}>
-          등록된 캐릭터가 없습니다
-        </div>
-      ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {filtered.map(char => (
-            <CharCard
-              key={char.id}
-              char={char}
-              characters={characters}
-              isAdmin={isAdmin}
-              onEdit={() => openEdit(char)}
-              onDelete={() => setDeleteTarget(char)}
-              onClick={() => openDetail(char)}
-            />
+      {/* 타입 필터 (그리드 뷰에서만) */}
+      {viewMode === 'grid' && (
+        <div className="flex gap-2 mb-5">
+          {[['all', '전체'], ['individual', '개인'], ['group', '다인']].map(([v, l]) => (
+            <button
+              key={v}
+              className="px-3 py-1 rounded-full text-xs font-medium transition-all"
+              style={typeFilter === v
+                ? { background: 'var(--accent)', color: 'var(--bg)', border: '1px solid var(--accent)' }
+                : { background: 'transparent', color: 'var(--txm)', border: '1px solid var(--border)' }
+              }
+              onClick={() => setTypeFilter(v)}
+            >{l}</button>
           ))}
         </div>
+      )}
+
+      {/* 관계도 뷰 */}
+      {viewMode === 'relation' && (
+        <RelationGraph characters={characters} />
+      )}
+
+      {/* 캐릭터 그리드 */}
+      {viewMode === 'grid' && (
+        filtered.length === 0 ? (
+          <div className="text-center py-20" style={{ color: 'var(--txs)' }}>
+            등록된 캐릭터가 없습니다
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {filtered.map(char => (
+              <CharCard
+                key={char.id}
+                char={char}
+                characters={characters}
+                isAdmin={isAdmin}
+                onEdit={() => openEdit(char)}
+                onDelete={() => setDeleteTarget(char)}
+                onClick={() => openDetail(char)}
+              />
+            ))}
+          </div>
+        )
       )}
 
       {/* 생성/수정 폼 모달 */}
@@ -291,7 +315,7 @@ export default function Characters() {
                   <div key={i} className="flex gap-2 mb-2">
                     <select className="input" style={{ width: '40%' }} value={r.characterId} onChange={e => setForm(f => { const relations = [...f.relations]; relations[i] = { ...relations[i], characterId: e.target.value }; return { ...f, relations } })}>
                       <option value="">캐릭터 선택</option>
-                      {sameWorkChars().filter(c => c.id !== editTarget?.id).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                      {individualChars().filter(c => c.id !== editTarget?.id).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                     </select>
                     <input className="input flex-1" placeholder="관계 설명" value={r.description} onChange={e => setForm(f => { const relations = [...f.relations]; relations[i] = { ...relations[i], description: e.target.value }; return { ...f, relations } })} />
                     <button onClick={() => setForm(f => ({ ...f, relations: f.relations.filter((_, j) => j !== i) }))} style={{ color: 'var(--txs)' }}><X size={14} /></button>

@@ -1,4 +1,5 @@
-// 홈 대시보드 — 고정 3열 레이아웃 (react-grid-layout 제거)
+// 홈 대시보드 — 모바일 1열 (사용자 순서) / 데스크톱 3열
+import { useState, useEffect } from 'react'
 import useSettingsStore from '../store/useSettingsStore'
 import CalendarWidget from '../components/widgets/CalendarWidget'
 import ArchiveWidget from '../components/widgets/ArchiveWidget'
@@ -18,7 +19,7 @@ const WIDGET_MAP = {
   bgm:           BgmWidget,
 }
 
-// 데스크톱 3열 배치 순서 (목업 기준)
+// 데스크톱 3열 배치
 const LEFT_COL   = ['profile', 'bgm']
 const CENTER_COL = ['archive', 'trpg']
 const RIGHT_COL  = ['characterCard', 'calendar']
@@ -44,31 +45,43 @@ function Column({ keys, activeWidgets }) {
 }
 
 export default function Home() {
-  const { activeWidgets } = useSettingsStore()
+  const { activeWidgets, mobileWidgetOrder } = useSettingsStore()
+
+  const [isMobile, setIsMobile] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(max-width: 1023px)').matches
+  )
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 1023px)')
+    const handler = e => setIsMobile(e.matches)
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [])
+
+  // 모바일: 사용자 지정 순서로 활성 위젯만 렌더링
+  const mobileOrder = (mobileWidgetOrder || []).filter(k => activeWidgets[k] && WIDGET_MAP[k])
 
   return (
     <div className="pt-14 min-h-screen" style={{ background: 'var(--bg)' }}>
       <div className="max-w-7xl mx-auto px-3 py-3">
-        {/*
-          모바일:  1열 (flex-col)
-          데스크톱 (lg+): 3열 — 왼쪽 고정 / 중간 가변 / 오른쪽 고정
-        */}
-        <div className="flex flex-col lg:flex-row gap-3">
-          {/* 왼쪽 */}
-          <div className="lg:w-72 shrink-0 space-y-3">
-            <Column keys={LEFT_COL} activeWidgets={activeWidgets} />
+        {isMobile ? (
+          // 모바일 — 사용자 정의 순서 단일 열
+          <div className="space-y-3">
+            {mobileOrder.map(k => <Widget key={k} id={k} />)}
           </div>
-
-          {/* 가운데 */}
-          <div className="flex-1 space-y-3">
-            <Column keys={CENTER_COL} activeWidgets={activeWidgets} />
+        ) : (
+          // 데스크톱 — 3열 고정 레이아웃
+          <div className="flex gap-3">
+            <div className="w-72 shrink-0 space-y-3">
+              <Column keys={LEFT_COL} activeWidgets={activeWidgets} />
+            </div>
+            <div className="flex-1 space-y-3">
+              <Column keys={CENTER_COL} activeWidgets={activeWidgets} />
+            </div>
+            <div className="w-64 shrink-0 space-y-3">
+              <Column keys={RIGHT_COL} activeWidgets={activeWidgets} />
+            </div>
           </div>
-
-          {/* 오른쪽 */}
-          <div className="lg:w-64 shrink-0 space-y-3">
-            <Column keys={RIGHT_COL} activeWidgets={activeWidgets} />
-          </div>
-        </div>
+        )}
       </div>
     </div>
   )

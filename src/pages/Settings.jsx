@@ -1,6 +1,6 @@
 // 설정 페이지
 import { useState } from 'react'
-import { RotateCcw, Check, Lock } from 'lucide-react'
+import { RotateCcw, Check, Lock, GripVertical } from 'lucide-react'
 import useSettingsStore from '../store/useSettingsStore'
 import useAdminStore from '../store/useAdminStore'
 import ConfirmDialog from '../components/common/ConfirmDialog'
@@ -47,6 +47,7 @@ export default function Settings() {
     accent2Color, setAccent2Color,
     darkMode, toggleDarkMode,
     activeWidgets, toggleWidget,
+    mobileWidgetOrder, setMobileWidgetOrder,
     resetWidgetLayouts,
     guestbookPasswordHash, setGuestbookPasswordHash,
     adminPasswordHash, setAdminPasswordHash,
@@ -93,6 +94,27 @@ export default function Settings() {
 
   // 위젯 초기화 확인
   const [resetConfirm, setResetConfirm] = useState(false)
+
+  // 모바일 위젯 순서 드래그
+  const [dragIdx, setDragIdx] = useState(null)
+  const safeOrder = mobileWidgetOrder && mobileWidgetOrder.length > 0
+    ? mobileWidgetOrder
+    : ['profile', 'bgm', 'archive', 'trpg', 'characterCard', 'calendar', 'miniGallery']
+
+  const handleDragStart = (e, idx) => {
+    setDragIdx(idx)
+    e.dataTransfer.effectAllowed = 'move'
+  }
+  const handleDragOver = (e, idx) => {
+    e.preventDefault()
+    if (dragIdx === null || dragIdx === idx) return
+    const next = [...safeOrder]
+    const [item] = next.splice(dragIdx, 1)
+    next.splice(idx, 0, item)
+    setMobileWidgetOrder(next)
+    setDragIdx(idx)
+  }
+  const handleDragEnd = () => setDragIdx(null)
 
   // 메인 비주얼 업로드
   const handleMainVisual = async (e) => {
@@ -217,6 +239,41 @@ export default function Settings() {
         >
           <RotateCcw size={13} /> 위젯 배치 초기화
         </button>
+      </SettingSection>
+
+      {/* 모바일 위젯 순서 */}
+      <SettingSection title="모바일 위젯 순서">
+        <p className="text-xs mb-3" style={{ color: 'var(--txm)' }}>
+          모바일 화면에서 위젯이 위에서 아래로 표시되는 순서입니다. 드래그해서 순서를 바꿔주세요.
+        </p>
+        <div className="space-y-1.5">
+          {safeOrder.map((key, idx) => (
+            <div
+              key={key}
+              draggable
+              onDragStart={e => handleDragStart(e, idx)}
+              onDragOver={e => handleDragOver(e, idx)}
+              onDragEnd={handleDragEnd}
+              className="flex items-center gap-2.5 px-3 py-2 rounded-lg select-none"
+              style={{
+                background: dragIdx === idx ? 'color-mix(in srgb, var(--accent) 10%, transparent)' : 'var(--elevated)',
+                border: dragIdx === idx ? '1px solid color-mix(in srgb, var(--accent) 30%, transparent)' : '1px solid var(--border)',
+                cursor: 'grab',
+                opacity: dragIdx !== null && dragIdx !== idx ? 0.6 : 1,
+                transition: 'opacity 0.1s',
+              }}
+            >
+              <GripVertical size={14} style={{ color: 'var(--txs)', flexShrink: 0 }} />
+              <span className="text-sm flex-1" style={{ color: activeWidgets[key] ? 'var(--tx)' : 'var(--txs)' }}>
+                {WIDGET_META[key]?.label || key}
+              </span>
+              {!activeWidgets[key] && (
+                <span className="text-xs px-1.5 py-0.5 rounded"
+                  style={{ background: 'var(--border)', color: 'var(--txs)' }}>비활성</span>
+              )}
+            </div>
+          ))}
+        </div>
       </SettingSection>
 
       {/* 관리자 비밀번호 */}

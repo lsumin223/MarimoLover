@@ -174,7 +174,7 @@ export default function Writings() {
 
       <div className="flex" style={{ minHeight: 'calc(100vh - 100px)' }}>
         {/* 데스크톱 사이드바 */}
-        <div className="hidden lg:block w-56 shrink-0 border-r border-border overflow-y-auto" style={{ background: 'var(--surface)' }}>
+        <div className="hidden lg:block w-60 shrink-0 border-r border-border overflow-y-auto" style={{ background: 'var(--surface)' }}>
           <div className="flex items-center justify-between px-3 py-3 border-b border-border">
             <span className="text-xs font-bold tracking-widest uppercase" style={{ color: 'var(--txm)' }}>시리즈</span>
             {isAdmin && (
