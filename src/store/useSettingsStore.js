@@ -39,6 +39,9 @@ const useSettingsStore = create(
         bgm: true,
       },
 
+      // 모바일 위젯 표시 순서
+      mobileWidgetOrder: ['profile', 'bgm', 'archive', 'trpg', 'characterCard', 'calendar', 'miniGallery'],
+
       // 위젯 레이아웃 설정
       widgetLayouts: {},
 
@@ -85,9 +88,14 @@ const useSettingsStore = create(
           },
         })),
 
+      setMobileWidgetOrder: (mobileWidgetOrder) => set({ mobileWidgetOrder }),
+
       setWidgetLayouts: (widgetLayouts) => set({ widgetLayouts }),
 
-      resetWidgetLayouts: () => set({ widgetLayouts: {} }),
+      resetWidgetLayouts: () => set({
+        widgetLayouts: {},
+        mobileWidgetOrder: ['profile', 'bgm', 'archive', 'trpg', 'characterCard', 'calendar', 'miniGallery'],
+      }),
 
       setGuestbookPasswordHash: (guestbookPasswordHash) =>
         set({ guestbookPasswordHash }),
