@@ -1,10 +1,7 @@
-// 캐릭터 페이지 — 캐릭터 카드 목록 + 생성/수정/삭제 + 상세 모달
+// 캐릭터 페이지 — 캐릭터 카드 목록 + 생성/수정/삭제
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { Plus, Edit2, Trash2, X, ChevronRight, Image as ImageIcon, FileText, GitFork } from 'lucide-react'
+import { Plus, Edit2, Trash2, X, Image as ImageIcon, Heart, GitFork } from 'lucide-react'
 import useCharacterStore from '../store/useCharacterStore'
-import useGalleryStore from '../store/useGalleryStore'
-import useWritingStore from '../store/useWritingStore'
 import { useIsAdmin } from '../store/useAdminStore'
 import Modal from '../components/common/Modal'
 import ConfirmDialog from '../components/common/ConfirmDialog'
@@ -57,24 +54,18 @@ const emptyGroup = { type: 'group', name: '', thumbnailImageId: null, descriptio
 
 export default function Characters() {
   const isAdmin = useIsAdmin()
-  const navigate = useNavigate()
   const { characters, addCharacter, updateCharacter, deleteCharacter } = useCharacterStore()
-  const { posts } = useGalleryStore()
-  const { writings } = useWritingStore()
 
   // 뷰 상태
   const [viewMode, setViewMode] = useState('grid') // 'grid' | 'relation'
   // 필터 상태
-  const [typeFilter, setTypeFilter] = useState('all') // 'all' | 'individual' | 'pair'
+  const [typeFilter, setTypeFilter] = useState('all')
   // 폼 모달
   const [formOpen, setFormOpen] = useState(false)
   const [editTarget, setEditTarget] = useState(null)
   const [formType, setFormType] = useState('individual')
   const [form, setForm] = useState(emptyIndividual)
   const [thumbPreview, setThumbPreview] = useState(null)
-  // 상세 모달
-  const [detailChar, setDetailChar] = useState(null)
-  const [activeTab, setActiveTab] = useState('profile')
   // 삭제 확인
   const [deleteTarget, setDeleteTarget] = useState(null)
 
@@ -131,30 +122,8 @@ export default function Characters() {
     setFormOpen(false)
   }
 
-  // 상세 모달 열기
-  const openDetail = (char) => {
-    setDetailChar(char)
-    setActiveTab(char.type === 'individual' ? 'profile' : 'members')
-  }
-
   // 개인 캐릭터 목록 (관계 선택용)
   const individualChars = () => characters.filter(c => c.type === 'individual')
-
-  // 로그 매칭 — 개인: 이름, 다인: 멤버 이름 중 하나라도 포함
-  const getCharLogs = (char) => {
-    if (char.type === 'individual') {
-      const name = (char.name || '').toLowerCase()
-      return {
-        gallery:  posts.filter(p => (p.tags || []).some(t => t.toLowerCase() === name)),
-        writings: writings.filter(w => (w.tags || []).some(t => t.toLowerCase() === name)),
-      }
-    }
-    const names = (char.members || []).map(m => (m.name || '').toLowerCase()).filter(Boolean)
-    return {
-      gallery:  posts.filter(p => (p.tags || []).some(t => names.includes(t.toLowerCase()))),
-      writings: writings.filter(w => (w.tags || []).some(t => names.includes(t.toLowerCase()))),
-    }
-  }
 
   // 다인 멤버 이미지 업로드
   const handleMemberImage = async (e, idx) => {
@@ -222,11 +191,9 @@ export default function Characters() {
               <CharCard
                 key={char.id}
                 char={char}
-                characters={characters}
                 isAdmin={isAdmin}
                 onEdit={() => openEdit(char)}
                 onDelete={() => setDeleteTarget(char)}
-                onClick={() => openDetail(char)}
               />
             ))}
           </div>
@@ -444,24 +411,6 @@ export default function Characters() {
         </div>
       </Modal>
 
-      {/* 상세 모달 */}
-      {detailChar && (
-        <CharDetailModal
-          char={detailChar}
-          characters={characters}
-          posts={posts}
-          writings={writings}
-          isAdmin={isAdmin}
-          getCharLogs={getCharLogs}
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          onClose={() => setDetailChar(null)}
-          onEdit={() => { setDetailChar(null); openEdit(detailChar) }}
-          onNavigateChar={(id) => { const c = characters.find(x => x.id === id); if (c) { setDetailChar(c); setActiveTab('profile') } }}
-          navigate={navigate}
-        />
-      )}
-
       {/* 삭제 확인 */}
       <ConfirmDialog
         isOpen={!!deleteTarget}
@@ -473,8 +422,8 @@ export default function Characters() {
   )
 }
 
-// 캐릭터 카드 컴포넌트 — 포트레이트 카드 스타일
-function CharCard({ char, characters, isAdmin, onEdit, onDelete, onClick }) {
+// 캐릭터 카드 — 이미지 + 하트 + 이름 + 날짜 심플 스타일
+function CharCard({ char, isAdmin, onEdit, onDelete }) {
   const [imgSrc, setImgSrc] = useState(null)
   const [hovered, setHovered] = useState(false)
 
@@ -483,47 +432,22 @@ function CharCard({ char, characters, isAdmin, onEdit, onDelete, onClick }) {
     else setImgSrc(null)
   }, [char.thumbnailImageId])
 
-  const getName = (id) => characters.find(c => c.id === id)?.name || '?'
-  const getCharById = (id) => characters.find(c => c.id === id)
-
   const members = char.members || []
   const autoTitle = members.length <= 2
     ? members.map(m => m.name || '?').join(' × ')
     : members.map(m => m.name || '?').join(' · ')
   const title = char.type === 'individual' ? char.name : (char.name?.trim() || autoTitle)
-  const desc = char.type === 'individual' ? char.bio : char.description
-  const colors = char.colors || []
-  const typeColor = { individual: 'var(--accent)', pair: 'var(--accent2)', group: 'var(--txm)' }[char.type]
-  const typeBadge = { individual: '개인', pair: '페어', group: '그룹' }[char.type]
+  const date = (char.createdAt || '').slice(0, 10).replace(/-/g, '.')
 
   return (
     <div
-      className="rounded-xl overflow-hidden cursor-pointer relative"
+      className="rounded-xl overflow-hidden relative"
       style={{ border: '1px solid var(--border)', background: 'var(--surface)' }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      onClick={onClick}
     >
-      {/* 헤더: 타입 배지 + 이름 + 색상 스와치 */}
-      <div className="px-3 pt-2.5 pb-2" style={{ borderBottom: '1px solid var(--border)' }}>
-        <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0">
-            <span className="text-xs font-medium block mb-0.5" style={{ color: typeColor }}>{typeBadge}</span>
-            <span className="text-sm font-bold block truncate" style={{ color: 'var(--tx)' }}>{title}</span>
-          </div>
-          {colors.length > 0 && (
-            <div className="flex gap-1 shrink-0 pt-1">
-              {colors.slice(0, 4).map((c, i) => (
-                <div key={i} title={c.label} className="w-3 h-3 rounded-full"
-                  style={{ background: c.hex, boxShadow: '0 0 0 1.5px rgba(0,0,0,0.12)' }} />
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* 이미지 영역 (가로 4:3 비율) */}
-      <div className="relative" style={{ paddingTop: '75%' }}>
+      {/* 이미지 영역 */}
+      <div className="relative" style={{ paddingTop: '80%' }}>
         <div className="absolute inset-0">
           {imgSrc ? (
             <img src={imgSrc} alt={title} className="w-full h-full object-cover" />
@@ -543,16 +467,18 @@ function CharCard({ char, characters, isAdmin, onEdit, onDelete, onClick }) {
         </div>
       </div>
 
-      {/* 푸터: 설명 */}
-      <div className="px-3 py-2.5" style={{ borderTop: '1px solid var(--border)', minHeight: 38 }}>
-        {desc
-          ? <p className="text-xs line-clamp-2" style={{ color: 'var(--txm)' }}>{desc}</p>
-          : <span className="text-xs" style={{ color: 'var(--txs)' }}>—</span>}
+      {/* 이름 + 날짜 */}
+      <div className="px-3 py-2.5">
+        <div className="flex items-center gap-1.5 mb-0.5">
+          <Heart size={11} style={{ color: 'var(--accent)', fill: 'var(--accent)', flexShrink: 0 }} />
+          <span className="text-sm font-medium truncate" style={{ color: 'var(--tx)' }}>{title}</span>
+        </div>
+        {date && <div className="text-xs" style={{ color: 'var(--txs)' }}>{date}</div>}
       </div>
 
       {/* 관리자 편집/삭제 (호버) */}
       {isAdmin && hovered && (
-        <div className="absolute top-9 right-2 flex gap-1 z-10" onClick={e => e.stopPropagation()}>
+        <div className="absolute top-2 right-2 flex gap-1 z-10" onClick={e => e.stopPropagation()}>
           <button className="w-7 h-7 rounded flex items-center justify-center"
             style={{ background: 'rgba(0,0,0,0.6)', color: 'white' }} onClick={onEdit}><Edit2 size={13} /></button>
           <button className="w-7 h-7 rounded flex items-center justify-center"
@@ -575,248 +501,3 @@ function MemberThumb({ imageId, name, size = 48 }) {
   )
 }
 
-// 캐릭터 아트 패널 — 상세 모달 좌측에 전신/두상 이미지 표시
-function CharArtPanel({ fullBodyId, headId, thumbId }) {
-  const [fullSrc, setFullSrc] = useState(null)
-  const [headSrc, setHeadSrc] = useState(null)
-  const [thumbSrc, setThumbSrc] = useState(null)
-  const [zoom, setZoom] = useState(null)
-
-  useEffect(() => { if (fullBodyId) getImage(fullBodyId).then(setFullSrc) }, [fullBodyId])
-  useEffect(() => { if (headId) getImage(headId).then(setHeadSrc) }, [headId])
-  useEffect(() => { if (thumbId) getImage(thumbId).then(setThumbSrc) }, [thumbId])
-
-  const mainImg = fullSrc || thumbSrc
-  if (!mainImg && !headSrc) return null
-
-  return (
-    <>
-      <div className="flex flex-col gap-2 shrink-0" style={{ width: 130 }}>
-        {mainImg && (
-          <div className="rounded-lg overflow-hidden cursor-pointer" style={{ border: '1px solid var(--border)' }} onClick={() => setZoom(mainImg)}>
-            <img src={mainImg} alt="" className="w-full object-cover" style={{ maxHeight: 230, objectPosition: 'top' }} />
-          </div>
-        )}
-        {headSrc && (
-          <div className="rounded-lg overflow-hidden cursor-pointer" style={{ border: '1px solid var(--border)' }} onClick={() => setZoom(headSrc)}>
-            <img src={headSrc} alt="" className="w-full object-cover" style={{ maxHeight: 110, objectPosition: 'top' }} />
-          </div>
-        )}
-      </div>
-      {zoom && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.88)' }} onClick={() => setZoom(null)}>
-          <img src={zoom} alt="" className="max-w-full max-h-full object-contain rounded-lg" style={{ maxHeight: '90vh' }} />
-        </div>
-      )}
-    </>
-  )
-}
-
-// 캐릭터 상세 모달
-function CharDetailModal({ char, characters, posts, writings, isAdmin, getCharLogs, activeTab, setActiveTab, onClose, onEdit, onNavigateChar, navigate }) {
-  const getName = (id) => characters.find(c => c.id === id)?.name || '?'
-
-  const tabs = char.type === 'individual'
-    ? [['profile', '프로필'], ['relation', '관계'], ['timeline', '타임라인'], ['log', '로그']]
-    : [['members', '멤버'], ['relation', '관계설명'], ['timeline', '타임라인'], ['log', '로그']]
-
-  const logs = getCharLogs(char)
-  const members = char.members || []
-  const autoModalTitle = members.length <= 2
-    ? members.map(m => m.name || '?').join(' × ')
-    : members.map(m => m.name || '?').join(' · ')
-  const modalTitle = char.type === 'individual' ? char.name : (char.name?.trim() || autoModalTitle)
-
-  return (
-    <Modal isOpen={true} onClose={onClose} title={modalTitle} size="lg">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex gap-2 flex-wrap">
-          {tabs.map(([t, l]) => (
-            <button key={t} className="px-3 py-1 rounded text-sm font-medium transition-all"
-              style={activeTab === t
-                ? { background: 'var(--accent)', color: 'var(--bg)' }
-                : { color: 'var(--txm)', border: '1px solid var(--border)' }
-              }
-              onClick={() => setActiveTab(t)}>{l}</button>
-          ))}
-        </div>
-        {isAdmin && <button className="btn-ghost text-xs" onClick={onEdit}><Edit2 size={12} className="inline mr-1" />수정</button>}
-      </div>
-
-      {/* 개인 — 프로필 */}
-      {activeTab === 'profile' && char.type === 'individual' && (
-        <div className="space-y-4">
-          {/* 상단: 아트 패널(좌) + 정보(우) */}
-          <div className="flex gap-4">
-            <CharArtPanel fullBodyId={char.fullBodyImageId} headId={char.headImageId} thumbId={char.thumbnailImageId} />
-            <div className="flex-1 space-y-3 min-w-0">
-              <div>
-                <div className="text-lg font-bold" style={{ color: 'var(--tx)' }}>{char.name}</div>
-                {char.bio && <p className="text-sm mt-1" style={{ color: 'var(--txm)' }}>{char.bio}</p>}
-              </div>
-              {/* 색상 스와치 */}
-              {(char.colors || []).length > 0 && (
-                <div className="space-y-1.5 pt-2" style={{ borderTop: '1px solid var(--border)' }}>
-                  {char.colors.map((c, i) => (
-                    <div key={i} className="flex items-center gap-2">
-                      <div className="w-4 h-4 rounded-full shrink-0"
-                        style={{ background: c.hex, boxShadow: '0 0 0 1px rgba(0,0,0,0.15)' }} />
-                      <span className="text-xs font-semibold uppercase tracking-wide"
-                        style={{ color: 'var(--txm)', minWidth: 44 }}>{c.label}</span>
-                      <span className="text-xs font-mono" style={{ color: 'var(--txs)' }}>{c.hex}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-              {/* 프로필 필드 */}
-              {(char.profileFields || []).length > 0 && (
-                <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 pt-2" style={{ borderTop: '1px solid var(--border)' }}>
-                  {char.profileFields.map((pf) => (
-                    <div key={pf.id} className="text-xs">
-                      <span style={{ color: 'var(--txs)' }}>{pf.label} </span>
-                      <span className="font-medium" style={{ color: 'var(--tx)' }}>{pf.value}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-          {/* 성격 */}
-          {char.personality && (
-            <div className="rounded-lg p-3" style={{ background: 'var(--elevated)' }}>
-              <div className="text-xs font-bold uppercase tracking-wide mb-1.5"
-                style={{ color: 'var(--accent)', borderLeft: '2px solid var(--accent)', paddingLeft: 6 }}>성격</div>
-              <p className="text-sm" style={{ color: 'var(--tx)', whiteSpace: 'pre-wrap' }}>{char.personality}</p>
-            </div>
-          )}
-          {/* 특징 */}
-          {char.traits && (
-            <div className="rounded-lg p-3" style={{ background: 'var(--elevated)' }}>
-              <div className="text-xs font-bold uppercase tracking-wide mb-1.5"
-                style={{ color: 'var(--accent2)', borderLeft: '2px solid var(--accent2)', paddingLeft: 6 }}>특징</div>
-              <p className="text-sm" style={{ color: 'var(--tx)', whiteSpace: 'pre-wrap' }}>{char.traits}</p>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* 관계 탭 */}
-      {activeTab === 'relation' && char.type === 'individual' && (
-        <div className="space-y-3">
-          {(!char.relations || char.relations.length === 0) ? (
-            <div style={{ color: 'var(--txs)' }} className="text-sm">등록된 관계가 없습니다</div>
-          ) : char.relations.map((r, i) => {
-            const related = characters.find(c => c.id === r.characterId)
-            return (
-              <div key={i} className="flex items-start gap-3 p-3 rounded-lg" style={{ background: 'var(--elevated)' }}>
-                <CharThumb imageId={related?.thumbnailImageId} name={related?.name} size={36} />
-                <div>
-                  <button className="text-sm font-medium hover:underline" style={{ color: 'var(--accent)' }} onClick={() => onNavigateChar(r.characterId)}>{related?.name || '?'}</button>
-                  <p className="text-xs mt-0.5" style={{ color: 'var(--txm)' }}>{r.description}</p>
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      )}
-
-      {/* 다인 관계설명 */}
-      {activeTab === 'relation' && char.type === 'group' && (
-        <div className="space-y-3">
-          {char.description
-            ? <div className="rounded-lg p-3" style={{ background: 'var(--elevated)' }}>
-                <p className="text-sm" style={{ color: 'var(--tx)', whiteSpace: 'pre-wrap' }}>{char.description}</p>
-              </div>
-            : <p className="text-sm" style={{ color: 'var(--txs)' }}>관계 설명이 없습니다</p>}
-        </div>
-      )}
-
-      {/* 다인 멤버 탭 */}
-      {activeTab === 'members' && (
-        <div className="space-y-3">
-          {/* 색상 스와치 */}
-          {(char.colors || []).length > 0 && (
-            <div className="flex gap-3 flex-wrap pb-3" style={{ borderBottom: '1px solid var(--border)' }}>
-              {char.colors.map((c, i) => (
-                <div key={i} className="flex items-center gap-1.5">
-                  <div className="w-4 h-4 rounded-full" style={{ background: c.hex, boxShadow: '0 0 0 1px rgba(0,0,0,0.15)' }} />
-                  <span className="text-xs font-semibold" style={{ color: 'var(--txm)' }}>{c.label}</span>
-                </div>
-              ))}
-            </div>
-          )}
-          {members.map((m, i) => (
-            <div key={m.id || i} className="flex gap-3 p-3 rounded-xl" style={{ background: 'var(--elevated)' }}>
-              <MemberThumb imageId={m.imageId} name={m.name} size={56} />
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-0.5 flex-wrap">
-                  <span className="text-sm font-bold" style={{ color: 'var(--tx)' }}>{m.name || '이름 없음'}</span>
-                  {m.role && <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'color-mix(in srgb, var(--accent) 15%, transparent)', color: 'var(--accent)' }}>{m.role}</span>}
-                </div>
-                {m.bio && <p className="text-xs" style={{ color: 'var(--txm)', whiteSpace: 'pre-wrap' }}>{m.bio}</p>}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* 타임라인 */}
-      {activeTab === 'timeline' && (
-        <div className="space-y-3">
-          {(!char.timeline || char.timeline.length === 0) ? (
-            <div style={{ color: 'var(--txs)' }} className="text-sm">등록된 타임라인이 없습니다</div>
-          ) : char.timeline.map((t, i) => (
-            <div key={t.id || i} className="flex gap-3">
-              <div className="flex flex-col items-center">
-                <div className="w-2 h-2 rounded-full mt-1.5 shrink-0" style={{ background: 'var(--accent)' }} />
-                {i < char.timeline.length - 1 && <div className="w-px flex-1 mt-1" style={{ background: 'var(--border)' }} />}
-              </div>
-              <div className="pb-4">
-                <div className="text-xs mb-0.5" style={{ color: 'var(--txm)' }}>{t.date}</div>
-                <div className="text-sm font-medium" style={{ color: 'var(--tx)' }}>{t.event}</div>
-                {t.description && <div className="text-xs mt-0.5" style={{ color: 'var(--txs)' }}>{t.description}</div>}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* 로그 */}
-      {activeTab === 'log' && (
-        <div className="space-y-4">
-          {logs.gallery.length > 0 && (
-            <div>
-              <div className="text-xs font-medium mb-2" style={{ color: 'var(--txm)' }}>그림</div>
-              <div className="space-y-2">
-                {logs.gallery.map(p => (
-                  <div key={p.id} className="flex items-center gap-2 p-2 rounded cursor-pointer hover:bg-elevated" onClick={() => { onClose(); navigate(`/gallery/${p.id}`) }}>
-                    <ImageIcon size={14} style={{ color: 'var(--accent)' }} />
-                    <span className="text-sm flex-1" style={{ color: 'var(--tx)' }}>{p.title}</span>
-                    <span className="text-xs" style={{ color: 'var(--txs)' }}>{p.date}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-          {logs.writings.length > 0 && (
-            <div>
-              <div className="text-xs font-medium mb-2" style={{ color: 'var(--txm)' }}>글</div>
-              <div className="space-y-2">
-                {logs.writings.map(w => (
-                  <div key={w.id} className="flex items-center gap-2 p-2 rounded cursor-pointer hover:bg-elevated" onClick={() => { onClose(); navigate(`/writings/${w.id}`) }}>
-                    <FileText size={14} style={{ color: 'var(--accent2)' }} />
-                    <span className="text-sm flex-1" style={{ color: 'var(--tx)' }}>{w.title}</span>
-                    <span className="text-xs" style={{ color: 'var(--txs)' }}>{w.date}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-          {logs.gallery.length === 0 && logs.writings.length === 0 && (
-            <div className="text-sm" style={{ color: 'var(--txs)' }}>연결된 그림/글이 없습니다</div>
-          )}
-        </div>
-      )}
-    </Modal>
-  )
-}
