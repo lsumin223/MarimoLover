@@ -58,8 +58,6 @@ export default function Characters() {
 
   // 뷰 상태
   const [viewMode, setViewMode] = useState('grid') // 'grid' | 'relation'
-  // 필터 상태
-  const [typeFilter, setTypeFilter] = useState('all')
   // 폼 모달
   const [formOpen, setFormOpen] = useState(false)
   const [editTarget, setEditTarget] = useState(null)
@@ -69,11 +67,8 @@ export default function Characters() {
   // 삭제 확인
   const [deleteTarget, setDeleteTarget] = useState(null)
 
-  const filtered = characters.filter(c => {
-    if (typeFilter === 'individual') return c.type === 'individual'
-    if (typeFilter === 'group') return c.type === 'group'
-    return true
-  })
+  const individuals = characters.filter(c => c.type === 'individual')
+  const groups = characters.filter(c => c.type === 'group')
 
   // 폼 열기 (신규)
   const openCreate = () => {
@@ -157,45 +152,58 @@ export default function Characters() {
         </div>
       </div>
 
-      {/* 타입 필터 (그리드 뷰에서만) */}
-      {viewMode === 'grid' && (
-        <div className="flex gap-2 mb-5">
-          {[['all', '전체'], ['individual', '개인'], ['group', '다인']].map(([v, l]) => (
-            <button
-              key={v}
-              className="px-3 py-1 rounded-full text-xs font-medium transition-all"
-              style={typeFilter === v
-                ? { background: 'var(--accent)', color: 'var(--bg)', border: '1px solid var(--accent)' }
-                : { background: 'transparent', color: 'var(--txm)', border: '1px solid var(--border)' }
-              }
-              onClick={() => setTypeFilter(v)}
-            >{l}</button>
-          ))}
-        </div>
-      )}
-
       {/* 관계도 뷰 */}
       {viewMode === 'relation' && (
         <RelationGraph characters={characters} />
       )}
 
-      {/* 캐릭터 그리드 */}
+      {/* 개인 / 다인 분리 그리드 */}
       {viewMode === 'grid' && (
-        filtered.length === 0 ? (
+        individuals.length === 0 && groups.length === 0 ? (
           <div className="text-center py-20" style={{ color: 'var(--txs)' }}>
             등록된 캐릭터가 없습니다
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {filtered.map(char => (
-              <CharCard
-                key={char.id}
-                char={char}
-                isAdmin={isAdmin}
-                onEdit={() => openEdit(char)}
-                onDelete={() => setDeleteTarget(char)}
-              />
-            ))}
+          <div className="space-y-10">
+            {/* 개인 */}
+            {individuals.length > 0 && (
+              <section>
+                <h2 className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: 'var(--txm)' }}>
+                  개인 <span style={{ color: 'var(--txs)', fontWeight: 400 }}>({individuals.length})</span>
+                </h2>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {individuals.map(char => (
+                    <CharCard
+                      key={char.id}
+                      char={char}
+                      isAdmin={isAdmin}
+                      onEdit={() => openEdit(char)}
+                      onDelete={() => setDeleteTarget(char)}
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* 다인 */}
+            {groups.length > 0 && (
+              <section>
+                <h2 className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: 'var(--txm)' }}>
+                  다인 <span style={{ color: 'var(--txs)', fontWeight: 400 }}>({groups.length})</span>
+                </h2>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {groups.map(char => (
+                    <CharCard
+                      key={char.id}
+                      char={char}
+                      isAdmin={isAdmin}
+                      onEdit={() => openEdit(char)}
+                      onDelete={() => setDeleteTarget(char)}
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
           </div>
         )
       )}
