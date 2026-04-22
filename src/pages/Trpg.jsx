@@ -107,9 +107,9 @@ export default function Trpg() {
 
       <div className="flex" style={{ minHeight: 'calc(100vh - 100px)' }}>
         {/* 데스크톱 캠페인 사이드바 */}
-        <div className="hidden lg:block w-64 shrink-0 border-r border-border overflow-y-auto p-4" style={{ background: 'var(--surface)' }}>
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-semibold tracking-wide uppercase" style={{ color: 'var(--txm)' }}>캠페인</span>
+        <div className="hidden lg:block w-60 shrink-0 border-r border-border overflow-y-auto" style={{ background: 'var(--surface)' }}>
+          <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+            <span className="text-xs font-bold tracking-widest uppercase" style={{ color: 'var(--txm)' }}>캠페인</span>
             {isAdmin && (
               <button
                 className="w-6 h-6 rounded flex items-center justify-center transition-colors"
@@ -118,23 +118,23 @@ export default function Trpg() {
               ><Plus size={14} /></button>
             )}
           </div>
-          <div className="space-y-1">
-            {campaigns.length === 0 && <div className="text-xs py-4 text-center" style={{ color: 'var(--txs)' }}>캠페인이 없습니다</div>}
+          <div className="space-y-0">
+            {campaigns.length === 0 && <div className="px-4 py-6 text-xs text-center" style={{ color: 'var(--txs)' }}>캠페인이 없습니다</div>}
             {campaigns.map(c => (
               <div
                 key={c.id}
-                className="group flex items-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer transition-colors"
+                className="group flex items-center gap-2.5 px-4 py-2.5 cursor-pointer transition-colors"
                 style={{
-                  background: selectedCampaignId === c.id ? 'color-mix(in srgb, var(--accent) 12%, transparent)' : 'transparent',
-                  border: selectedCampaignId === c.id ? '1px solid color-mix(in srgb, var(--accent) 25%, transparent)' : '1px solid transparent',
+                  background: selectedCampaignId === c.id ? 'color-mix(in srgb, var(--accent) 10%, transparent)' : 'transparent',
+                  borderLeft: selectedCampaignId === c.id ? '2px solid var(--accent)' : '2px solid transparent',
                 }}
                 onClick={() => setSelectedCampaignId(c.id)}
               >
-                <div className="w-7 h-7 rounded overflow-hidden shrink-0" style={{ background: 'var(--elevated)', border: '1px solid var(--border)' }}>
+                <div className="w-8 h-8 rounded-md overflow-hidden shrink-0" style={{ background: 'var(--elevated)', border: '1px solid var(--border)' }}>
                   <CoverThumb imageId={c.coverImageId} title={c.title} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium truncate" style={{ color: selectedCampaignId === c.id ? 'var(--accent)' : 'var(--tx)' }}>{c.title}</div>
+                  <div className="text-xs font-semibold truncate" style={{ color: selectedCampaignId === c.id ? 'var(--accent)' : 'var(--tx)' }}>{c.title}</div>
                   {c.system && <div className="text-xs truncate" style={{ color: 'var(--txs)' }}>{c.system}</div>}
                 </div>
                 {isAdmin && (
@@ -149,29 +149,27 @@ export default function Trpg() {
         </div>
 
         {/* 세션 목록 */}
-        <div className="flex-1 max-w-4xl mx-auto px-4 lg:px-6 py-4 lg:py-6 overflow-y-auto">
+        <div className="flex-1 px-4 lg:px-6 py-4 lg:py-6 overflow-y-auto">
           {!currentCampaign ? (
             <div className="flex items-center justify-center h-full" style={{ color: 'var(--txs)' }}>
               캠페인을 선택하거나 새로 만들어주세요
             </div>
           ) : (
             <>
-              <div className="flex items-start justify-between mb-5">
-                <div className="flex gap-4">
-                  {currentCampaign.coverImageId && (
-                    <div className="w-16 h-16 rounded-lg overflow-hidden shrink-0" style={{ border: '1px solid var(--border)' }}>
-                      <CoverThumb imageId={currentCampaign.coverImageId} title={currentCampaign.title} />
-                    </div>
-                  )}
-                  <div>
-                    <h2 className="text-lg font-bold" style={{ color: 'var(--tx)' }}>{currentCampaign.title}</h2>
-                    {currentCampaign.system && <div className="text-xs mt-0.5" style={{ color: 'var(--txm)' }}>{currentCampaign.system}</div>}
-                    {currentCampaign.description && <p className="text-sm mt-2" style={{ color: 'var(--txm)' }}>{currentCampaign.description}</p>}
+              <div className="flex items-start gap-4 mb-6 p-4 rounded-xl" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+                {currentCampaign.coverImageId && (
+                  <div className="w-16 h-16 rounded-lg overflow-hidden shrink-0" style={{ background: 'var(--elevated)', border: '1px solid var(--border)' }}>
+                    <CoverThumb imageId={currentCampaign.coverImageId} title={currentCampaign.title} />
                   </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <h2 className="text-lg font-bold mb-1" style={{ color: 'var(--tx)' }}>{currentCampaign.title}</h2>
+                  {currentCampaign.system && <div className="text-xs mb-1" style={{ color: 'var(--accent)' }}>{currentCampaign.system}</div>}
+                  {currentCampaign.description && <p className="text-xs leading-relaxed" style={{ color: 'var(--txm)' }}>{currentCampaign.description}</p>}
                 </div>
                 {isAdmin && (
                   <button
-                    className="btn-accent flex items-center gap-1.5 shrink-0 ml-4"
+                    className="btn-accent flex items-center gap-1.5 shrink-0"
                     onClick={() => { setSessionEdit(null); setSessionForm({ title: '', date: new Date().toISOString().slice(0, 10), summary: '' }); setSessionFormOpen(true) }}
                   >
                     <Plus size={14} /> 새 세션
@@ -180,22 +178,23 @@ export default function Trpg() {
               </div>
 
               {currentSessions.length === 0 ? (
-                <div className="text-center py-16" style={{ color: 'var(--txs)' }}>
-                  세션이 없습니다. 새 세션을 추가해보세요.
+                <div className="text-center py-16 rounded-xl" style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--txs)' }}>
+                  <p className="mb-3 text-sm">세션이 없습니다</p>
+                  {isAdmin && <button className="btn-ghost text-xs" onClick={() => { setSessionEdit(null); setSessionForm({ title: '', date: new Date().toISOString().slice(0, 10), summary: '' }); setSessionFormOpen(true) }}>+ 첫 세션 추가</button>}
                 </div>
               ) : (
                 <div className="space-y-2">
                   {currentSessions.map((session, idx) => (
                     <div
                       key={session.id}
-                      className="group flex items-center gap-4 p-4 rounded-xl cursor-pointer transition-colors"
+                      className="group flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all"
                       style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
                       onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--accent)'}
                       onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
                       onClick={() => navigate(`/trpg/${session.id}`)}
                     >
                       {/* 세션 번호 */}
-                      <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold shrink-0"
+                      <div className="w-7 h-7 rounded-md shrink-0 flex items-center justify-center text-xs font-bold"
                         style={{ background: 'color-mix(in srgb, var(--accent) 12%, transparent)', color: 'var(--accent)' }}>
                         {idx + 1}
                       </div>
