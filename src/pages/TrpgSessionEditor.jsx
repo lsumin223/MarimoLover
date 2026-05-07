@@ -1,11 +1,29 @@
-// TRPG 세션 작성/수정 에디터 — 세션 추가가 곧 글 작성
+// TRPG 세션 작성/수정 에디터 — 세션 기록 + 로그 파싱
 import { useState } from 'react'
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
-import { ChevronLeft, Check } from 'lucide-react'
+import { ChevronLeft, Check, X, ChevronDown, ChevronUp } from 'lucide-react'
 import useTrpgStore from '../store/useTrpgStore'
 import useCharacterStore from '../store/useCharacterStore'
 
 const genId = () => 'id-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7)
+
+function parseCcfoliaHtml(html) {
+  const parser = new DOMParser()
+  const doc = parser.parseFromString(html, 'text/html')
+  const paragraphs = doc.querySelectorAll('p')
+  const entries = []
+  paragraphs.forEach((p, idx) => {
+    const spans = p.querySelectorAll('span')
+    if (spans.length >= 3) {
+      const color = p.style.color || '#888888'
+      const channel = spans[0]?.textContent?.trim().replace(/[\[\]]/g, '') || ''
+      const character = spans[1]?.textContent?.trim() || ''
+      const content = spans[2]?.textContent?.trim() || ''
+      if (character && content) entries.push({ id: 'log-' + idx, color, channel, character, content })
+    }
+  })
+  return entries
+}
 
 export default function TrpgSessionEditor() {
   const { sessionId } = useParams()
@@ -24,27 +42,49 @@ export default function TrpgSessionEditor() {
   const [summary, setSummary] = useState(existing?.summary || '')
   const [plChars, setPlChars] = useState(existing?.plCharacters || [])
 
+  // 로그 파싱
+  const [log, setLog] = useState(existing?.log || [])
+  const [showLogSection, setShowLogSection] = useState(false)
+  const [rawHtml, setRawHtml] = useState('')
+  const [parsedPreview, setParsedPreview] = useState(null) // 파싱 미리보기
+
   const togglePl = (charName) => setPlChars(prev =>
     prev.some(p => p.name === charName)
       ? prev.filter(p => p.name !== charName)
       : [...prev, { id: genId(), name: charName, player: '' }]
   )
 
+  const handleParse = () => {
+    if (!rawHtml.trim()) return
+    const parsed = parseCcfoliaHtml(rawHtml)
+    setParsedPreview(parsed)
+  }
+
+  const applyLog = () => {
+    if (!parsedPreview) return
+    setLog(parsedPreview)
+    setParsedPreview(null)
+    setRawHtml('')
+  }
+
+  const clearLog = () => {
+    setLog([])
+    setParsedPreview(null)
+    setRawHtml('')
+  }
+
   const handleSave = () => {
     if (!title.trim()) return
+    const payload = { title, date, summary, plCharacters: plChars, log }
     if (existing) {
-      updateSession(existing.id, { title, date, summary, plCharacters: plChars })
+      updateSession(existing.id, payload)
       navigate(`/trpg/${existing.id}`)
     } else {
       const newId = genId()
       addSession({
         id: newId,
         campaignId: existing?.campaignId || campaignId,
-        title,
-        date,
-        summary,
-        plCharacters: plChars,
-        log: [],
+        ...payload,
         createdAt: new Date().toISOString(),
       })
       navigate(`/trpg/${newId}`)
@@ -87,7 +127,6 @@ export default function TrpgSessionEditor() {
           <input className="input" type="date" value={date}
             onChange={e => setDate(e.target.value)} style={{ width: 160 }} />
         </div>
-        {/* PL 캐릭터 선택 */}
         {individualChars.length > 0 && (
           <div>
             <label className="block text-xs font-medium mb-2" style={{ color: 'var(--txm)' }}>PL 캐릭터</label>
@@ -111,8 +150,8 @@ export default function TrpgSessionEditor() {
         )}
       </div>
 
-      {/* 세션 기록 — 메인 텍스트 영역 */}
-      <div className="rounded-xl overflow-hidden" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+      {/* 세션 기록 텍스트 */}
+      <div className="rounded-xl mb-4 overflow-hidden" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
         <div className="px-4 py-2 text-xs font-medium" style={{ borderBottom: '1px solid var(--border)', color: 'var(--txm)' }}>
           세션 기록 / 요약
         </div>
@@ -125,12 +164,107 @@ export default function TrpgSessionEditor() {
             fontSize: '15px',
             lineHeight: '2',
             letterSpacing: '0.02em',
-            minHeight: '400px',
+            minHeight: '300px',
           }}
           placeholder="이번 세션의 내용이나 메모를 기록하세요..."
           value={summary}
           onChange={e => setSummary(e.target.value)}
         />
+      </div>
+
+      {/* CCFOLIA 로그 파싱 섹션 */}
+      <div className="rounded-xl overflow-hidden" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+        <button
+          className="w-full flex items-center justify-between px-4 py-3 hover:opacity-80 transition-opacity"
+          onClick={() => setShowLogSection(v => !v)}
+        >
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium" style={{ color: 'var(--tx)' }}>CCFOLIA 로그</span>
+            {log.length > 0 && (
+              <span className="text-xs px-2 py-0.5 rounded-full"
+                style={{ background: 'color-mix(in srgb, var(--accent) 15%, transparent)', color: 'var(--accent)' }}>
+                {log.length}줄
+              </span>
+            )}
+          </div>
+          {showLogSection
+            ? <ChevronUp size={14} style={{ color: 'var(--txs)' }} />
+            : <ChevronDown size={14} style={{ color: 'var(--txs)' }} />}
+        </button>
+
+        {showLogSection && (
+          <div className="px-4 pb-4 pt-1 border-t border-border space-y-3">
+            <p className="text-xs" style={{ color: 'var(--txs)' }}>
+              코코포리아 채팅 로그 백업 HTML 파일의 내용을 전체 복사해서 붙여넣어 주세요.
+            </p>
+
+            <textarea
+              className="textarea"
+              rows={6}
+              value={rawHtml}
+              onChange={e => { setRawHtml(e.target.value); setParsedPreview(null) }}
+              placeholder="<html>...</html>"
+              style={{ fontFamily: 'monospace', fontSize: '12px' }}
+            />
+
+            <div className="flex items-center gap-2 flex-wrap">
+              <button className="btn-accent text-sm" onClick={handleParse}
+                disabled={!rawHtml.trim()}>
+                파싱 미리보기
+              </button>
+              {parsedPreview && (
+                <button className="btn-ghost text-sm flex items-center gap-1"
+                  style={{ color: 'var(--accent)', border: '1px solid var(--accent)' }}
+                  onClick={applyLog}>
+                  <Check size={13} /> {parsedPreview.length}줄 적용
+                </button>
+              )}
+              {log.length > 0 && (
+                <button className="btn-ghost text-xs" style={{ color: '#f87171' }} onClick={clearLog}>
+                  로그 초기화
+                </button>
+              )}
+              {log.length > 0 && !parsedPreview && (
+                <span className="text-xs ml-auto" style={{ color: 'var(--txs)' }}>
+                  현재 {log.length}줄 저장됨
+                </span>
+              )}
+            </div>
+
+            {/* 파싱 미리보기 */}
+            {parsedPreview && (
+              <div className="rounded-lg overflow-hidden" style={{ border: '1px solid var(--border)' }}>
+                <div className="px-3 py-2 text-xs font-medium flex items-center justify-between"
+                  style={{ background: 'var(--elevated)', borderBottom: '1px solid var(--border)', color: 'var(--txm)' }}>
+                  <span>미리보기 — {parsedPreview.length}줄</span>
+                  <button onClick={() => setParsedPreview(null)} style={{ color: 'var(--txs)' }}>
+                    <X size={13} />
+                  </button>
+                </div>
+                <div className="overflow-y-auto" style={{ maxHeight: 300 }}>
+                  {parsedPreview.slice(0, 30).map(entry => (
+                    <div key={entry.id} className="trpg-log-entry">
+                      {entry.channel && (
+                        <span className="trpg-channel-badge shrink-0">[{entry.channel}]</span>
+                      )}
+                      <span className="font-semibold shrink-0 text-sm" style={{ color: entry.color, minWidth: '5em' }}>
+                        {entry.character}
+                      </span>
+                      <span className="text-sm flex-1" style={{ color: 'var(--tx)', lineHeight: 1.6 }}>
+                        {entry.content}
+                      </span>
+                    </div>
+                  ))}
+                  {parsedPreview.length > 30 && (
+                    <div className="px-4 py-2 text-xs text-center" style={{ color: 'var(--txs)' }}>
+                      ... 외 {parsedPreview.length - 30}줄
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )
