@@ -1,7 +1,7 @@
-// 그림 갤러리 페이지 — 썸네일 그리드 + 라이트박스 + 비밀글 잠금
-import { useState, useEffect, useCallback } from 'react'
+// 그림 갤러리 페이지 — 썸네일 그리드 + 비밀글 잠금
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, Edit2, Trash2, X, Image as ImageIcon, Lock, ChevronLeft, ChevronRight, Eye, EyeOff } from 'lucide-react'
+import { Plus, Edit2, Trash2, X, Image as ImageIcon, Lock, Eye, EyeOff } from 'lucide-react'
 import useGalleryStore from '../store/useGalleryStore'
 import useCharacterStore from '../store/useCharacterStore'
 import { useIsAdmin } from '../store/useAdminStore'
@@ -52,83 +52,6 @@ function TextCard({ post }) {
           ))}
         </div>
       )}
-    </div>
-  )
-}
-
-// 라이트박스
-function Lightbox({ post, initialIdx, onClose }) {
-  const [idx, setIdx] = useState(initialIdx)
-  const [srcs, setSrcs] = useState([])
-  const ids = post.imageIds || []
-
-  useEffect(() => {
-    if (ids.length > 0) Promise.all(ids.map(id => getImage(id))).then(setSrcs)
-  }, [ids.join(',')])
-
-  const goNext = useCallback(() => setIdx(i => (i + 1) % ids.length), [ids.length])
-  const goPrev = useCallback(() => setIdx(i => (i - 1 + ids.length) % ids.length), [ids.length])
-
-  useEffect(() => {
-    const handler = (e) => {
-      if (e.key === 'Escape') onClose()
-      if (e.key === 'ArrowRight') goNext()
-      if (e.key === 'ArrowLeft') goPrev()
-    }
-    window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
-  }, [onClose, goNext, goPrev])
-
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center"
-      style={{ background: 'rgba(0,0,0,0.92)' }}
-      onClick={onClose}
-    >
-      {/* 닫기 */}
-      <button className="absolute top-4 right-4 w-9 h-9 rounded-full flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.1)', color: 'white' }} onClick={onClose}><X size={18} /></button>
-
-      {/* 이미지 or 텍스트 카드 */}
-      <div className="relative flex items-center justify-center w-full h-full px-16" onClick={e => e.stopPropagation()}>
-        {ids.length === 0 ? (
-          <div className="p-8 rounded-xl text-center" style={{ background: 'rgba(255,255,255,0.06)', maxWidth: 360 }}>
-            <ImageIcon size={32} className="mx-auto mb-3" style={{ color: 'rgba(255,255,255,0.3)' }} />
-            <div className="text-white font-bold text-lg mb-1">{post.title}</div>
-            <div className="text-sm mb-2" style={{ color: 'rgba(255,255,255,0.5)' }}>{post.date}</div>
-            {(post.tags || []).length > 0 && (
-              <div className="flex flex-wrap gap-1 justify-center mt-3">
-                {post.tags.map(t => <span key={t} className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.7)' }}>{t}</span>)}
-              </div>
-            )}
-          </div>
-        ) : srcs[idx] ? (
-          <img src={srcs[idx]} alt="" className="max-w-full max-h-full object-contain rounded-lg select-none" style={{ maxHeight: '90vh' }} />
-        ) : null}
-      </div>
-
-      {/* 이전/다음 */}
-      {ids.length > 1 && (
-        <>
-          <button
-            className="absolute left-4 w-10 h-10 rounded-full flex items-center justify-center"
-            style={{ background: 'rgba(255,255,255,0.15)', color: 'white' }}
-            onClick={e => { e.stopPropagation(); goPrev() }}
-          ><ChevronLeft size={20} /></button>
-          <button
-            className="absolute right-4 w-10 h-10 rounded-full flex items-center justify-center"
-            style={{ background: 'rgba(255,255,255,0.15)', color: 'white' }}
-            onClick={e => { e.stopPropagation(); goNext() }}
-          ><ChevronRight size={20} /></button>
-        </>
-      )}
-
-      {/* 인덱스 표시 */}
-      {ids.length > 1 && (
-        <div className="absolute bottom-6 text-sm" style={{ color: 'rgba(255,255,255,0.6)' }}>{idx + 1} / {ids.length}</div>
-      )}
-
-      {/* 제목 */}
-      <div className="absolute top-4 left-0 right-0 text-center text-sm font-medium" style={{ color: 'rgba(255,255,255,0.8)' }}>{post.title}</div>
     </div>
   )
 }
@@ -196,8 +119,6 @@ export default function Gallery() {
   const [deleteTarget, setDeleteTarget] = useState(null)
   // 호버
   const [hoveredId, setHoveredId] = useState(null)
-  // 라이트박스
-  const [lightbox, setLightbox] = useState(null) // {post, imgIdx}
   // 비밀번호 확인
   const [pwModal, setPwModal] = useState(null) // {post}
   const [unlockedIds, setUnlockedIds] = useState(new Set())
@@ -211,12 +132,12 @@ export default function Gallery() {
     return 0
   })
 
-  // 카드 클릭 — 비밀글이면 비번 모달, 아니면 라이트박스
+  // 카드 클릭 — 비밀글이면 비번 모달, 아니면 상세 페이지로 이동
   const handleCardClick = (post) => {
     if (post.passwordHash && !unlockedIds.has(post.id)) {
       setPwModal({ post })
     } else {
-      setLightbox({ post, imgIdx: 0 })
+      navigate('/gallery/' + post.id)
     }
   }
 
@@ -438,21 +359,11 @@ export default function Gallery() {
         <PasswordModal
           correctHash={pwModal.post.passwordHash}
           onConfirm={() => {
-            const post = pwModal.post
-            setUnlockedIds(s => new Set([...s, post.id]))
+            setUnlockedIds(s => new Set([...s, pwModal.post.id]))
             setPwModal(null)
-            setLightbox({ post, imgIdx: 0 })
+            navigate(`/gallery/${pwModal.post.id}`)
           }}
           onCancel={() => setPwModal(null)}
-        />
-      )}
-
-      {/* 라이트박스 */}
-      {lightbox && (
-        <Lightbox
-          post={lightbox.post}
-          initialIdx={lightbox.imgIdx}
-          onClose={() => setLightbox(null)}
         />
       )}
     </div>

@@ -1,16 +1,13 @@
 // 글 페이지 — 시리즈 사이드바 + 글 목록 (TRPG 구조와 동일)
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, Edit2, Trash2, FileText, Image as ImageIcon, X } from 'lucide-react'
+import { Plus, Edit2, Trash2, FileText, Image as ImageIcon } from 'lucide-react'
 import useWritingStore from '../store/useWritingStore'
 import useCharacterStore from '../store/useCharacterStore'
 import { useIsAdmin } from '../store/useAdminStore'
 import Modal from '../components/common/Modal'
 import ConfirmDialog from '../components/common/ConfirmDialog'
-import TagInput from '../components/common/TagInput'
 import { saveImage, resizeImage, getImage, deleteImage } from '../lib/imageDB'
-
-const genId = () => 'id-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7)
 
 // 시리즈 썸네일
 function SeriesThumb({ imageId, name }) {
@@ -25,12 +22,11 @@ function SeriesThumb({ imageId, name }) {
 }
 
 const emptySeriesForm = { title: '', description: '', mainCharacters: '', thumbnailImageId: null }
-const emptyWritingForm = { title: '', chapterNum: '', date: new Date().toISOString().slice(0, 10), content: '', tags: [] }
 
 export default function Writings() {
   const navigate = useNavigate()
   const isAdmin = useIsAdmin()
-  const { series, writings, addSeries, updateSeries, deleteSeries, addWriting, updateWriting, deleteWriting } = useWritingStore()
+  const { series, writings, addSeries, updateSeries, deleteSeries, deleteWriting } = useWritingStore()
   const { characters } = useCharacterStore()
   const individualChars = characters.filter(c => c.type === 'individual' && c.name)
 

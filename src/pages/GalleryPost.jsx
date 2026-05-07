@@ -1,9 +1,10 @@
 // 갤러리 게시글 상세 페이지
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ChevronLeft, Edit2, Trash2, X, Image as ImageIcon } from 'lucide-react'
+import { ChevronLeft, Edit2, Trash2, X, Image as ImageIcon, Lock, Eye, EyeOff } from 'lucide-react'
 import useGalleryStore from '../store/useGalleryStore'
 import useCharacterStore from '../store/useCharacterStore'
+import { useIsAdmin } from '../store/useAdminStore'
 import Modal from '../components/common/Modal'
 import ConfirmDialog from '../components/common/ConfirmDialog'
 import ImageSlider from '../components/common/ImageSlider'
@@ -11,9 +12,15 @@ import { deleteImage, saveImage, resizeImage, getImage } from '../lib/imageDB'
 
 const genId = () => 'id-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7)
 
+async function sha256(text) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text))
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('')
+}
+
 export default function GalleryPost() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const isAdmin = useIsAdmin()
   const { posts, updatePost, deletePost } = useGalleryStore()
   const { characters } = useCharacterStore()
   const individualChars = characters.filter(c => c.type === 'individual')
@@ -25,6 +32,12 @@ export default function GalleryPost() {
   const [previews, setPreviews] = useState([])
   const [deleteOpen, setDeleteOpen] = useState(false)
 
+  // 비밀글 잠금 해제 상태
+  const [unlocked, setUnlocked] = useState(() => !post?.passwordHash)
+  const [unlockPw, setUnlockPw] = useState('')
+  const [showUnlockPw, setShowUnlockPw] = useState(false)
+  const [unlockError, setUnlockError] = useState(false)
+
   // 게시글 없을 때
   if (!post) {
     return (
@@ -35,6 +48,48 @@ export default function GalleryPost() {
     )
   }
 
+  // 비밀글 게이트 (비관리자)
+  if (post.passwordHash && !unlocked && !isAdmin) {
+    return (
+      <div className="max-w-sm mx-auto px-4 py-20 animate-fade-in">
+        <div className="text-center mb-6">
+          <Lock size={28} style={{ color: 'var(--accent)' }} />
+          <h2 className="text-lg font-bold mt-3" style={{ color: 'var(--tx)' }}>비밀글</h2>
+          <p className="text-sm mt-1" style={{ color: 'var(--txs)' }}>{post.title}</p>
+        </div>
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <input
+              type={showUnlockPw ? 'text' : 'password'}
+              className="input w-full pr-9"
+              placeholder="비밀번호"
+              value={unlockPw}
+              onChange={e => { setUnlockPw(e.target.value); setUnlockError(false) }}
+              onKeyDown={async e => {
+                if (e.key === 'Enter') {
+                  const hash = await sha256(unlockPw)
+                  if (hash === post.passwordHash) setUnlocked(true)
+                  else { setUnlockError(true); setUnlockPw('') }
+                }
+              }}
+              style={unlockError ? { borderColor: '#e74c3c' } : {}}
+              autoFocus
+            />
+            <button className="absolute right-2.5 top-2" style={{ color: 'var(--txm)' }} onClick={() => setShowUnlockPw(v => !v)}>
+              {showUnlockPw ? <EyeOff size={14} /> : <Eye size={14} />}
+            </button>
+          </div>
+          <button className="btn-accent" onClick={async () => {
+            const hash = await sha256(unlockPw)
+            if (hash === post.passwordHash) setUnlocked(true)
+            else { setUnlockError(true); setUnlockPw('') }
+          }}>확인</button>
+        </div>
+        {unlockError && <p className="text-xs mt-2 text-center" style={{ color: '#e74c3c' }}>비밀번호가 맞지 않습니다.</p>}
+        <button className="btn-ghost w-full mt-3 text-sm" onClick={() => navigate('/gallery')}>← 갤러리로</button>
+      </div>
+    )
+  }
 
   // 편집 모달 열기
   const openEdit = async () => {
@@ -86,10 +141,12 @@ export default function GalleryPost() {
         <button className="flex items-center gap-1 text-sm btn-ghost" onClick={() => navigate('/gallery')}>
           <ChevronLeft size={16} /> 갤러리
         </button>
-        <div className="flex gap-2">
-          <button className="btn-ghost flex items-center gap-1.5" onClick={openEdit}><Edit2 size={13} /> 수정</button>
-          <button className="btn-danger flex items-center gap-1.5" onClick={() => setDeleteOpen(true)}><Trash2 size={13} /> 삭제</button>
-        </div>
+        {isAdmin && (
+          <div className="flex gap-2">
+            <button className="btn-ghost flex items-center gap-1.5" onClick={openEdit}><Edit2 size={13} /> 수정</button>
+            <button className="btn-danger flex items-center gap-1.5" onClick={() => setDeleteOpen(true)}><Trash2 size={13} /> 삭제</button>
+          </div>
+        )}
       </div>
 
       {/* 이미지 슬라이더 */}
