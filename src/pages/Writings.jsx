@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Plus, Edit2, Trash2, FileText, Image as ImageIcon } from 'lucide-react'
 import useWritingStore from '../store/useWritingStore'
-import useCharacterStore from '../store/useCharacterStore'
 import { useIsAdmin } from '../store/useAdminStore'
 import Modal from '../components/common/Modal'
 import ConfirmDialog from '../components/common/ConfirmDialog'
@@ -21,15 +20,13 @@ function SeriesThumb({ imageId, name }) {
   )
 }
 
+const genId = () => 'id-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7)
 const emptySeriesForm = { title: '', description: '', mainCharacters: '', thumbnailImageId: null }
 
 export default function Writings() {
   const navigate = useNavigate()
   const isAdmin = useIsAdmin()
   const { series, writings, addSeries, updateSeries, deleteSeries, deleteWriting } = useWritingStore()
-  const { characters } = useCharacterStore()
-  const individualChars = characters.filter(c => c.type === 'individual' && c.name)
-
   // 선택된 시리즈
   const [selectedSeriesId, setSelectedSeriesId] = useState(null)
   // 태그 필터
@@ -40,11 +37,6 @@ export default function Writings() {
   const [editSeries, setEditSeries] = useState(null)
   const [seriesForm, setSeriesForm] = useState(emptySeriesForm)
   const [seriesThumbSrc, setSeriesThumbSrc] = useState(null)
-
-  // 글 폼
-  const [writingFormOpen, setWritingFormOpen] = useState(false)
-  const [editWriting, setEditWriting] = useState(null)
-  const [writingForm, setWritingForm] = useState(emptyWritingForm)
 
   // 삭제 확인
   const [deleteSeriesTarget, setDeleteSeriesTarget] = useState(null)
@@ -121,29 +113,6 @@ export default function Writings() {
     deleteSeries(deleteSeriesTarget.id)
     if (selectedSeriesId === deleteSeriesTarget.id) setSelectedSeriesId(null)
     setDeleteSeriesTarget(null)
-  }
-
-  // 글 폼 열기
-  const openWritingCreate = () => {
-    if (!selectedSeriesId) return
-    setEditWriting(null)
-    const nextChap = Math.max(0, ...currentWritings.map(w => w.chapterNum || 0)) + 1
-    setWritingForm({ ...emptyWritingForm, chapterNum: nextChap })
-    setWritingFormOpen(true)
-  }
-  const openWritingEdit = (w) => {
-    setEditWriting(w)
-    setWritingForm({ title: w.title, chapterNum: w.chapterNum || '', date: w.date || '', content: w.content || '' })
-    setWritingFormOpen(true)
-  }
-
-  // 글 저장
-  const saveWriting = () => {
-    if (!writingForm.title || !selectedSeriesId) return
-    const payload = { ...writingForm, seriesId: selectedSeriesId }
-    if (editWriting) updateWriting(editWriting.id, payload)
-    else addWriting(payload)
-    setWritingFormOpen(false)
   }
 
   return (
@@ -237,7 +206,7 @@ export default function Writings() {
             {/* 글 목록 헤더 */}
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-bold" style={{ color: 'var(--tx)' }}>글 목록 <span style={{ color: 'var(--txs)', fontWeight: 400 }}>({currentWritings.length})</span></span>
-              {isAdmin && <button className="btn-accent flex items-center gap-1 text-xs" onClick={openWritingCreate}><Plus size={12} /> 새 글</button>}
+              {isAdmin && <button className="btn-accent flex items-center gap-1 text-xs" onClick={() => navigate('/writings/new?seriesId=' + selectedSeriesId)}><Plus size={12} /> 새 글</button>}
             </div>
             {/* 태그 필터 */}
             {seriesTags.length > 0 && (
@@ -265,7 +234,7 @@ export default function Writings() {
             {currentWritings.length === 0 ? (
               <div className="text-center py-16 rounded-xl" style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--txs)' }}>
                 <p className="mb-3 text-sm">등록된 글이 없습니다</p>
-                {isAdmin && <button className="btn-ghost text-xs" onClick={openWritingCreate}>+ 첫 글 추가</button>}
+                {isAdmin && <button className="btn-ghost text-xs" onClick={() => navigate('/writings/new?seriesId=' + selectedSeriesId)}>+ 첫 글 추가</button>}
               </div>
             ) : (
               <div className="space-y-2">
@@ -288,7 +257,7 @@ export default function Writings() {
                     <div className="text-xs shrink-0" style={{ color: 'var(--txs)' }}>{w.date}</div>
                     {isAdmin && (
                       <div className="flex gap-1 shrink-0" onClick={e => e.stopPropagation()}>
-                        <button className="w-6 h-6 rounded flex items-center justify-center" style={{ color: 'var(--txm)' }} onClick={() => openWritingEdit(w)}><Edit2 size={11} /></button>
+                        <button className="w-6 h-6 rounded flex items-center justify-center" style={{ color: 'var(--txm)' }} onClick={() => navigate('/writings/' + w.id + '/edit')}><Edit2 size={11} /></button>
                         <button className="w-6 h-6 rounded flex items-center justify-center" style={{ color: '#f87171' }} onClick={() => setDeleteWritingTarget(w)}><Trash2 size={11} /></button>
                       </div>
                     )}
@@ -333,63 +302,6 @@ export default function Writings() {
         <div className="flex justify-end gap-2 mt-5">
           <button className="btn-ghost" onClick={() => setSeriesFormOpen(false)}>취소</button>
           <button className="btn-accent" onClick={saveSeries}>저장</button>
-        </div>
-      </Modal>
-
-      {/* 글 폼 모달 */}
-      <Modal isOpen={writingFormOpen} onClose={() => setWritingFormOpen(false)} title={editWriting ? '글 수정' : '새 글'} size="sm">
-        <div className="space-y-3">
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-medium mb-1" style={{ color: 'var(--txm)' }}>화수</label>
-              <input className="input" type="number" min="1" value={writingForm.chapterNum} onChange={e => setWritingForm(f => ({ ...f, chapterNum: Number(e.target.value) }))} placeholder="1" />
-            </div>
-            <div>
-              <label className="block text-xs font-medium mb-1" style={{ color: 'var(--txm)' }}>날짜</label>
-              <input className="input" type="date" value={writingForm.date} onChange={e => setWritingForm(f => ({ ...f, date: e.target.value }))} />
-            </div>
-          </div>
-          <div>
-            <label className="block text-xs font-medium mb-1" style={{ color: 'var(--txm)' }}>제목 *</label>
-            <input className="input" value={writingForm.title} onChange={e => setWritingForm(f => ({ ...f, title: e.target.value }))} placeholder="글 제목" />
-          </div>
-          {/* 캐릭터 태그 선택 */}
-          {individualChars.length > 0 && (
-            <div>
-              <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--txm)' }}>캐릭터 태그</label>
-              <div className="flex flex-wrap gap-1">
-                {individualChars.map(c => {
-                  const active = (writingForm.tags || []).some(t => t.toLowerCase() === c.name.toLowerCase())
-                  return (
-                    <button key={c.id}
-                      className="px-2 py-0.5 rounded-full text-xs transition-all"
-                      style={active
-                        ? { background: 'var(--accent)', color: 'var(--bg)' }
-                        : { border: '1px solid var(--border)', color: 'var(--txm)' }}
-                      onClick={() => {
-                        const name = c.name
-                        if (active) setWritingForm(f => ({ ...f, tags: (f.tags||[]).filter(t => t.toLowerCase() !== name.toLowerCase()) }))
-                        else setWritingForm(f => ({ ...f, tags: [...(f.tags||[]), name] }))
-                      }}
-                    >{c.name}</button>
-                  )
-                })}
-              </div>
-            </div>
-          )}
-          <div>
-            <label className="block text-xs font-medium mb-1" style={{ color: 'var(--txm)' }}>태그 (자유 입력)</label>
-            <TagInput tags={writingForm.tags || []} onChange={v => setWritingForm(f => ({ ...f, tags: v }))} placeholder="태그 입력 후 Enter" />
-          </div>
-          <div>
-            <label className="block text-xs font-medium mb-1" style={{ color: 'var(--txm)' }}>본문</label>
-            <textarea className="textarea" rows={8} value={writingForm.content} onChange={e => setWritingForm(f => ({ ...f, content: e.target.value }))} placeholder="내용을 입력하세요" style={{ fontFamily: 'inherit' }} />
-          </div>
-        </div>
-        <div className="flex gap-2 mt-5 justify-end">
-          <button className="btn-ghost" onClick={() => setWritingFormOpen(false)}>취소</button>
-          <button className="btn-accent" onClick={() => { saveWriting(); navigate(`/writings/`) }}>저장만</button>
-          <button className="btn-accent" onClick={saveWriting}>저장</button>
         </div>
       </Modal>
 

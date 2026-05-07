@@ -1,11 +1,16 @@
-// TRPG 세션 작성/수정 에디터 — 세션 기록 + 로그 파싱
+// TRPG 세션 작성/수정 에디터 — 세션 기록 + 로그 파싱 + 비밀번호 잠금
 import { useState } from 'react'
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
-import { ChevronLeft, Check, X, ChevronDown, ChevronUp } from 'lucide-react'
+import { ChevronLeft, Check, X, ChevronDown, ChevronUp, Lock, Eye, EyeOff, Upload } from 'lucide-react'
 import useTrpgStore from '../store/useTrpgStore'
 import useCharacterStore from '../store/useCharacterStore'
 
 const genId = () => 'id-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7)
+
+async function sha256(text) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text))
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('')
+}
 
 function parseCcfoliaHtml(html) {
   const parser = new DOMParser()
@@ -46,7 +51,13 @@ export default function TrpgSessionEditor() {
   const [log, setLog] = useState(existing?.log || [])
   const [showLogSection, setShowLogSection] = useState(false)
   const [rawHtml, setRawHtml] = useState('')
-  const [parsedPreview, setParsedPreview] = useState(null) // 파싱 미리보기
+  const [parsedPreview, setParsedPreview] = useState(null)
+
+  // 비밀번호 잠금
+  const [pwInput, setPwInput] = useState('')
+  const [pwConfirm, setPwConfirm] = useState('')
+  const [showPwFields, setShowPwFields] = useState(false)
+  const [showPwText, setShowPwText] = useState(false)
 
   const togglePl = (charName) => setPlChars(prev =>
     prev.some(p => p.name === charName)
@@ -73,9 +84,26 @@ export default function TrpgSessionEditor() {
     setRawHtml('')
   }
 
-  const handleSave = () => {
+  const handleJsonImport = (e) => {
+    const file = e.target.files[0]; if (!file) return
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      try {
+        const data = JSON.parse(ev.target.result)
+        if (data.log) setLog(data.log)
+      } catch { alert('JSON 파일을 읽을 수 없습니다.') }
+    }
+    reader.readAsText(file)
+  }
+
+  const handleSave = async () => {
     if (!title.trim()) return
-    const payload = { title, date, summary, plCharacters: plChars, log }
+    let passwordHash = existing?.passwordHash || null
+    if (pwInput.trim()) {
+      if (pwInput !== pwConfirm) { alert('비밀번호가 일치하지 않습니다.'); return }
+      passwordHash = await sha256(pwInput)
+    }
+    const payload = { title, date, summary, plCharacters: plChars, log, passwordHash }
     if (existing) {
       updateSession(existing.id, payload)
       navigate(`/trpg/${existing.id}`)
@@ -229,6 +257,11 @@ export default function TrpgSessionEditor() {
                   현재 {log.length}줄 저장됨
                 </span>
               )}
+              {/* JSON 가져오기 */}
+              <label className="btn-ghost flex items-center gap-1.5 text-xs cursor-pointer">
+                <Upload size={13} /> JSON 가져오기
+                <input type="file" accept=".json" className="hidden" onChange={handleJsonImport} />
+              </label>
             </div>
 
             {/* 파싱 미리보기 */}
@@ -263,6 +296,28 @@ export default function TrpgSessionEditor() {
                 </div>
               </div>
             )}
+          </div>
+        )}
+      </div>
+
+      {/* 비밀번호 잠금 */}
+      <div className="rounded-xl overflow-hidden mt-4" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+        <button className="w-full flex items-center justify-between px-4 py-3" onClick={() => setShowPwFields(v => !v)}>
+          <span className="text-sm font-medium flex items-center gap-2" style={{ color: 'var(--tx)' }}>
+            <Lock size={14} style={{ color: existing?.passwordHash ? 'var(--accent)' : 'var(--txm)' }} />
+            세션 잠금
+            {existing?.passwordHash && <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'color-mix(in srgb, var(--accent) 15%, transparent)', color: 'var(--accent)' }}>설정됨</span>}
+          </span>
+          <span className="text-xs" style={{ color: 'var(--txs)' }}>{showPwFields ? '닫기' : '설정'}</span>
+        </button>
+        {showPwFields && (
+          <div className="px-4 pb-4 pt-1 border-t border-border space-y-2">
+            <p className="text-xs" style={{ color: 'var(--txs)' }}>{existing?.passwordHash ? '새 비밀번호 입력 시 변경됩니다.' : '설정하면 비밀번호 없이 열람 불가합니다.'}</p>
+            <div className="flex gap-2">
+              <input type={showPwText ? 'text' : 'password'} className="input flex-1" placeholder="비밀번호" value={pwInput} onChange={e => setPwInput(e.target.value)} />
+              <input type={showPwText ? 'text' : 'password'} className="input flex-1" placeholder="비밀번호 확인" value={pwConfirm} onChange={e => setPwConfirm(e.target.value)} />
+              <button className="btn-ghost" onClick={() => setShowPwText(v => !v)}>{showPwText ? <EyeOff size={16} /> : <Eye size={16} />}</button>
+            </div>
           </div>
         )}
       </div>

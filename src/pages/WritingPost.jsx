@@ -1,7 +1,7 @@
-// 글 뷰어
+// 글 뷰어 — 포스트별 서식 적용
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ChevronLeft, ChevronRight, Edit2, Trash2 } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Edit2, Trash2, Lock } from 'lucide-react'
 import useWritingStore from '../store/useWritingStore'
 import { useIsAdmin } from '../store/useAdminStore'
 import ConfirmDialog from '../components/common/ConfirmDialog'
@@ -36,14 +36,36 @@ export default function WritingPost() {
     )
   }
 
+  // 비밀글 게이트 (비관리자)
+  if (writing.isPrivate && !isAdmin) {
+    return (
+      <div className="max-w-sm mx-auto px-4 py-24 text-center animate-fade-in">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4"
+          style={{ background: 'color-mix(in srgb, var(--accent) 15%, transparent)' }}>
+          <Lock size={28} style={{ color: 'var(--accent)' }} />
+        </div>
+        <h2 className="text-lg font-bold mb-2" style={{ color: 'var(--tx)' }}>비밀글입니다</h2>
+        <p className="text-sm mb-6" style={{ color: 'var(--txs)' }}>관리자만 열람할 수 있습니다.</p>
+        <button className="btn-ghost" onClick={() => navigate('/writings')}>← 목록으로</button>
+      </div>
+    )
+  }
+
   const siblingsInSeries = [...writings]
-    .filter(w => w.seriesId === writing.seriesId)
+    .filter(w => w.seriesId === writing.seriesId && (!w.isPrivate || isAdmin))
     .sort((a, b) => (a.chapterNum || 0) - (b.chapterNum || 0))
   const idx = siblingsInSeries.findIndex(w => w.id === id)
   const prev = siblingsInSeries[idx - 1]
   const next = siblingsInSeries[idx + 1]
 
   const currentSeries = series?.find(s => s.id === writing.seriesId)
+
+  // 포스트별 서식 (기본값 포함)
+  const fontFamily = writing.fontFamily || 'Noto Serif KR'
+  const fontSize = writing.fontSize || 17
+  const lineHeight = writing.lineHeight || 1.9
+  const letterSpacing = writing.letterSpacing || 0.03
+  const textAlign = writing.textAlign || 'left'
 
   const renderContent = (text) => {
     return text.split('\n').map((line, i) => {
@@ -77,36 +99,29 @@ export default function WritingPost() {
         )}
       </div>
 
-      {/* 본문 영역 */}
+      {/* 본문 */}
       <div className="mx-auto px-4 py-12" style={{ maxWidth: 680 }}>
-        {/* 제목/메타 */}
         <div className="mb-8">
           {currentSeries && (
             <div className="text-xs mb-2 cursor-pointer" style={{ color: 'var(--accent)' }} onClick={() => navigate('/writings')}>
               {currentSeries.title}{writing.chapterNum ? ` · ${writing.chapterNum}화` : ''}
             </div>
           )}
-          <h1 className="text-2xl font-bold mb-3" style={{ color: 'var(--tx)', fontFamily: 'Noto Serif KR, serif' }}>
+          <h1 className="text-2xl font-bold mb-2" style={{ color: 'var(--tx)', fontFamily }}>
+            {writing.isPrivate && <Lock size={16} className="inline mr-2 mb-1" style={{ color: 'var(--txs)' }} />}
             {writing.title}
           </h1>
           <div className="text-xs" style={{ color: 'var(--txs)' }}>{writing.date}</div>
         </div>
 
-        {/* 본문 */}
         <div
           className="writing-viewer-content"
-          style={{
-            fontFamily: 'Noto Serif KR, serif',
-            fontSize: '17px',
-            lineHeight: '1.9',
-            letterSpacing: '0.03em',
-            color: 'var(--tx)',
-          }}
+          style={{ fontFamily, fontSize: `${fontSize}px`, lineHeight, letterSpacing: `${letterSpacing}em`, textAlign, color: 'var(--tx)' }}
         >
           {renderContent(writing.content || '')}
         </div>
 
-        {/* 이전/다음 내비게이션 */}
+        {/* 이전/다음 */}
         <div className="flex justify-between mt-16 pt-6" style={{ borderTop: '1px solid var(--border)' }}>
           {prev ? (
             <button className="flex items-center gap-2 text-sm" style={{ color: 'var(--txm)' }} onClick={() => navigate(`/writings/${prev.id}`)}>
