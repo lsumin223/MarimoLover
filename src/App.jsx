@@ -14,6 +14,7 @@ import WritingPost from './pages/WritingPost'
 import WritingEditor from './pages/WritingEditor'
 import Trpg from './pages/Trpg'
 import TrpgSession from './pages/TrpgSession'
+import TrpgSessionEditor from './pages/TrpgSessionEditor'
 import About from './pages/About'
 import Settings from './pages/Settings'
 import Search from './pages/Search'
@@ -41,6 +42,8 @@ function Layout() {
           <Route path="/writings/:id" element={<WritingPost />} />
           <Route path="/writings/:id/edit" element={<WritingEditor />} />
           <Route path="/trpg" element={<Trpg />} />
+          <Route path="/trpg/new" element={<TrpgSessionEditor />} />
+          <Route path="/trpg/:sessionId/edit" element={<TrpgSessionEditor />} />
           <Route path="/trpg/:sessionId" element={<TrpgSession />} />
           <Route path="/about" element={<About />} />
           <Route path="/settings" element={<Settings />} />

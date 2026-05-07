@@ -21,7 +21,7 @@ function CoverThumb({ imageId, title }) {
 export default function Trpg() {
   const isAdmin = useIsAdmin()
   const navigate = useNavigate()
-  const { campaigns, sessions, addCampaign, updateCampaign, deleteCampaign, addSession, updateSession, deleteSession } = useTrpgStore()
+  const { campaigns, sessions, addCampaign, updateCampaign, deleteCampaign, deleteSession } = useTrpgStore()
 
   const [selectedCampaignId, setSelectedCampaignId] = useState(campaigns[0]?.id || null)
 
@@ -41,11 +41,6 @@ export default function Trpg() {
     setCoverPreview(b64)
   }
 
-  // 세션 폼
-  const [sessionFormOpen, setSessionFormOpen] = useState(false)
-  const [sessionEdit, setSessionEdit] = useState(null)
-  const [sessionForm, setSessionForm] = useState({ title: '', date: new Date().toISOString().slice(0, 10), summary: '' })
-
   // 삭제 확인
   const [deleteCampaignTarget, setDeleteCampaignTarget] = useState(null)
   const [deleteSessionTarget, setDeleteSessionTarget] = useState(null)
@@ -64,17 +59,6 @@ export default function Trpg() {
       setSelectedCampaignId(id)
     }
     setCampaignFormOpen(false)
-  }
-
-  // 세션 저장
-  const saveSession = () => {
-    if (!sessionForm.title || !selectedCampaignId) return
-    if (sessionEdit) {
-      updateSession(sessionEdit.id, sessionForm)
-    } else {
-      addSession({ ...sessionForm, id: genId(), campaignId: selectedCampaignId, log: [], createdAt: new Date().toISOString() })
-    }
-    setSessionFormOpen(false)
   }
 
   const openCampaignCreate = () => {
@@ -170,7 +154,7 @@ export default function Trpg() {
                 {isAdmin && (
                   <button
                     className="btn-accent flex items-center gap-1.5 shrink-0"
-                    onClick={() => { setSessionEdit(null); setSessionForm({ title: '', date: new Date().toISOString().slice(0, 10), summary: '' }); setSessionFormOpen(true) }}
+                    onClick={() => navigate(`/trpg/new?campaignId=${selectedCampaignId}`)}
                   >
                     <Plus size={14} /> 새 세션
                   </button>
@@ -180,7 +164,7 @@ export default function Trpg() {
               {currentSessions.length === 0 ? (
                 <div className="text-center py-16 rounded-xl" style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--txs)' }}>
                   <p className="mb-3 text-sm">세션이 없습니다</p>
-                  {isAdmin && <button className="btn-ghost text-xs" onClick={() => { setSessionEdit(null); setSessionForm({ title: '', date: new Date().toISOString().slice(0, 10), summary: '' }); setSessionFormOpen(true) }}>+ 첫 세션 추가</button>}
+                  {isAdmin && <button className="btn-ghost text-xs" onClick={() => navigate(`/trpg/new?campaignId=${selectedCampaignId}`)}>+ 첫 세션 추가</button>}
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -209,7 +193,7 @@ export default function Trpg() {
                       {/* 편집/삭제 — 관리자만 */}
                       {isAdmin && (
                         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
-                          <button className="w-7 h-7 rounded flex items-center justify-center" style={{ background: 'var(--elevated)', color: 'var(--txm)' }} onClick={() => { setSessionEdit(session); setSessionForm({ title: session.title, date: session.date, summary: session.summary }); setSessionFormOpen(true) }}><Edit2 size={12} /></button>
+                          <button className="w-7 h-7 rounded flex items-center justify-center" style={{ background: 'var(--elevated)', color: 'var(--txm)' }} onClick={() => navigate(`/trpg/${session.id}/edit`)}><Edit2 size={12} /></button>
                           <button className="w-7 h-7 rounded flex items-center justify-center" style={{ background: 'var(--elevated)', color: '#f87171' }} onClick={() => setDeleteSessionTarget(session)}><Trash2 size={12} /></button>
                         </div>
                       )}
@@ -254,28 +238,6 @@ export default function Trpg() {
         <div className="flex justify-end gap-2 mt-5">
           <button className="btn-ghost" onClick={() => setCampaignFormOpen(false)}>취소</button>
           <button className="btn-accent" onClick={saveCampaign}>저장</button>
-        </div>
-      </Modal>
-
-      {/* 세션 폼 모달 */}
-      <Modal isOpen={sessionFormOpen} onClose={() => setSessionFormOpen(false)} title={sessionEdit ? '세션 수정' : '새 세션'} size="sm">
-        <div className="space-y-3">
-          <div>
-            <label className="block text-xs font-medium mb-1" style={{ color: 'var(--txm)' }}>세션 제목 *</label>
-            <input className="input" value={sessionForm.title} onChange={e => setSessionForm(f => ({ ...f, title: e.target.value }))} placeholder="세션 제목" />
-          </div>
-          <div>
-            <label className="block text-xs font-medium mb-1" style={{ color: 'var(--txm)' }}>날짜</label>
-            <input className="input" type="date" value={sessionForm.date} onChange={e => setSessionForm(f => ({ ...f, date: e.target.value }))} />
-          </div>
-          <div>
-            <label className="block text-xs font-medium mb-1" style={{ color: 'var(--txm)' }}>세션 요약</label>
-            <textarea className="textarea" rows={3} value={sessionForm.summary} onChange={e => setSessionForm(f => ({ ...f, summary: e.target.value }))} placeholder="이번 세션의 간단한 요약" />
-          </div>
-        </div>
-        <div className="flex justify-end gap-2 mt-5">
-          <button className="btn-ghost" onClick={() => setSessionFormOpen(false)}>취소</button>
-          <button className="btn-accent" onClick={saveSession}>저장</button>
         </div>
       </Modal>
 
